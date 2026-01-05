@@ -1,0 +1,130 @@
+{%- style -%}
+  .section-{{ section.id }}-padding {
+    padding-top: {{ section.settings.padding_top }}px;
+    padding-bottom: {{ section.settings.padding_bottom }}px;
+    background-color: {{ section.settings.bg_color }};
+  }
+
+  .trust-bar-wrapper {
+    display: grid;
+    /* Automatische Spalten: Mindestens 250px breit, sonst umbrechen */
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    text-align: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  .trust-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: {{ section.settings.text_color }};
+  }
+
+  .trust-icon {
+    width: 40px;
+    height: 40px;
+    margin-bottom: 10px;
+    fill: currentColor; /* Erbt die Textfarbe */
+  }
+
+  .trust-text {
+    font-weight: bold;
+    font-size: 1rem;
+  }
+{%- endstyle -%}
+
+<div class="section-{{ section.id }}-padding">
+  <div class="trust-bar-wrapper">
+    {%- for block in section.blocks -%}
+      <div class="trust-item" {{ block.shopify_attributes }}>
+        
+        {%- if block.settings.custom_icon != blank -%}
+          <img src="{{ block.settings.custom_icon | image_url: width: 80 }}" 
+               loading="lazy" 
+               width="40" height="40" 
+               alt="{{ block.settings.text }}" 
+               class="trust-icon">
+        {%- else -%}
+          <svg class="trust-icon" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+            <path d="M10 0C4.48 0 0 4.48 0 10s4.48 10 10 10 10-4.48 10-10S15.52 0 10 0zm4.29 7.71l-5 5c-.18.18-.43.29-.71.29-.28 0-.53-.11-.71-.29l-2-2c-.39-.39-.39-1.02 0-1.41.39-.39 1.02-.39 1.41 0L9.58 11.59l4.29-4.29c.39-.39 1.02-.39 1.41 0 .39.39.39 1.02 0 1.41z"/>
+          </svg>
+        {%- endif -%}
+
+        <span class="trust-text">{{ block.settings.text }}</span>
+      </div>
+    {%- endfor -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "🏆 Trust Bar",
+  "settings": [
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "Hintergrundfarbe",
+      "default": "#f4f4f4"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text & Icon Farbe",
+      "default": "#333333"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Abstand oben",
+      "default": 36
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Abstand unten",
+      "default": 36
+    }
+  ],
+  "blocks": [
+    {
+      "type": "usp",
+      "name": "Vorteil",
+      "settings": [
+        {
+          "type": "text",
+          "id": "text",
+          "label": "Text",
+          "default": "Kostenloser Versand"
+        },
+        {
+          "type": "image_picker",
+          "id": "custom_icon",
+          "label": "Eigenes Icon (PNG/SVG)"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "🏆 Trust Bar",
+      "blocks": [
+        { "type": "usp", "settings": { "text": "Schneller Versand" } },
+        { "type": "usp", "settings": { "text": "Premium Qualität" } },
+        { "type": "usp", "settings": { "text": "24/7 Support" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -13,7 +13,29 @@
     {% if page_description %}
       <meta name="description" content="{{ page_description | escape }}">
     {% endif %}
+{%- liquid
+      assign body_font = settings.type_body_font
+      assign header_font = settings.type_header_font
+      assign body_font_bold = body_font | font_modify: 'weight', 'bold'
+      assign body_font_italic = body_font | font_modify: 'style', 'italic'
+    %}
 
+    <style>
+      /* 1. Schriften laden (Shopify CDN = DSGVO OK, da Content Delivery Network) */
+      {{ body_font | font_face: font_display: 'swap' }}
+      {{ header_font | font_face: font_display: 'swap' }}
+      {{ body_font_bold | font_face: font_display: 'swap' }}
+      {{ body_font_italic | font_face: font_display: 'swap' }}
+
+      /* 2. Variablen definieren */
+      :root {
+        --font-body-family: {{ body_font.family }}, {{ body_font.fallback_families }};
+        --font-header-family: {{ header_font.family }}, {{ header_font.fallback_families }};
+        
+        --font-body-weight: {{ body_font.weight }};
+        --font-header-weight: {{ header_font.weight }};
+      }
+    </style>
     {% # Inlined CSS Variables %}
     {% render 'css-variables' %}
 
@@ -45,5 +67,25 @@
     {{ content_for_layout }}
 
     {% sections 'footer-group' %}
-  </body>
+  <script>
+  // Lean Header Scroll Logic
+  document.addEventListener('DOMContentLoaded', function() {
+    const header = document.querySelector('.site-header');
+    
+    // Funktion die prüft, ob gescrollt wurde
+    function handleScroll() {
+      if (window.scrollY > 20) { // Ab 20px scrollen
+        header.classList.add('is-scrolled');
+      } else {
+        header.classList.remove('is-scrolled');
+      }
+    }
+
+    // Nur aktivieren, wenn der Header existiert
+    if (header) {
+      window.addEventListener('scroll', handleScroll);
+    }
+  });
+</script>
+    </body>
 </html>

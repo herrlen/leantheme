@@ -1,0 +1,211 @@
+{% comment %}
+  Lean Hero Banner
+  Optimiert für LCP (Largest Contentful Paint) und transparenten Header.
+{% endcomment %}
+
+<div class="hero-banner section-{{ section.id }}">
+  <div class="hero-media">
+    {%- if section.settings.image != blank -%}
+      <img
+        src="{{ section.settings.image | image_url: width: 1600 }}"
+        sizes="100vw"
+        loading="eager" 
+        width="{{ section.settings.image.width }}"
+        height="{{ section.settings.image.height }}"
+        alt="{{ section.settings.image.alt | escape }}"
+        class="hero-img {% if section.settings.image_mobile != blank %}hide-mobile{% endif %}"
+      >
+      {%- if section.settings.image_mobile != blank -%}
+        <img
+          src="{{ section.settings.image_mobile | image_url: width: 800 }}"
+          sizes="100vw"
+          loading="eager"
+          width="{{ section.settings.image_mobile.width }}"
+          height="{{ section.settings.image_mobile.height }}"
+          alt="{{ section.settings.image_mobile.alt | escape }}"
+          class="hero-img hide-desktop"
+        >
+      {%- endif -%}
+    {%- else -%}
+      {{ 'lifestyle-2' | placeholder_svg_tag: 'hero-img placeholder' }}
+    {%- endif -%}
+
+    <div class="hero-overlay" style="opacity: {{ section.settings.overlay_opacity | divided_by: 100.0 }}"></div>
+  </div>
+
+  <div class="hero-content page-width">
+    <div class="hero-text-wrapper">
+      {%- if section.settings.heading != blank -%}
+        <h1 class="hero-heading">{{ section.settings.heading }}</h1>
+      {%- endif -%}
+      
+      {%- if section.settings.text != blank -%}
+        <p class="hero-subheading">{{ section.settings.text }}</p>
+      {%- endif -%}
+
+      {%- if section.settings.button_label != blank -%}
+        <a href="{{ section.settings.button_link }}" class="button-primary hero-btn">
+          {{ section.settings.button_label }}
+        </a>
+      {%- endif -%}
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Lokales CSS für diese Section */
+  .section-{{ section.id }} {
+    position: relative;
+    height: {{ section.settings.section_height }}vh; /* Höhe einstellbar */
+    min-height: 500px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .hero-media {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+  }
+
+  .hero-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .placeholder {
+    background-color: #333;
+    fill: #555;
+  }
+
+  .hero-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #000000;
+    pointer-events: none;
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 2; /* Über dem Bild */
+    text-align: center;
+    width: 100%;
+    padding: 0 20px;
+  }
+
+  .hero-text-wrapper {
+    max-width: 800px;
+    margin: 0 auto;
+    color: #ffffff; /* Immer weißer Text auf Hero */
+  }
+
+  .hero-heading {
+    font-size: clamp(2.5rem, 5vw, 4.5rem); /* Responsive Schriftgröße */
+    font-weight: 700;
+    line-height: 1.1;
+    margin-bottom: 20px;
+    color: #ffffff;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+  }
+
+  .hero-subheading {
+    font-size: 1.25rem;
+    margin-bottom: 30px;
+    opacity: 0.9;
+    line-height: 1.6;
+  }
+
+  .hero-btn {
+    font-size: 1.1rem;
+    padding: 15px 35px;
+    transition: transform 0.2s ease;
+  }
+  
+  .hero-btn:hover {
+    transform: scale(1.05);
+  }
+
+  /* Mobile/Desktop Switch */
+  @media (max-width: 767px) {
+    .hide-mobile { display: none; }
+  }
+  @media (min-width: 768px) {
+    .hide-desktop { display: none; }
+  }
+</style>
+
+{% schema %}
+{
+  "name": "⭐️ Hero Banner",
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Desktop Bild"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_mobile",
+      "label": "Mobile Bild (Optional)"
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "min": 0,
+      "max": 90,
+      "step": 5,
+      "unit": "%",
+      "label": "Bild abdunkeln",
+      "default": 30
+    },
+    {
+      "type": "range",
+      "id": "section_height",
+      "min": 50,
+      "max": 100,
+      "step": 5,
+      "unit": "vh",
+      "label": "Höhe (Bildschirm %)",
+      "default": 85
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Überschrift",
+      "default": "Der neue Standard"
+    },
+    {
+      "type": "textarea",
+      "id": "text",
+      "label": "Untertext",
+      "default": "Beschreibe hier deine Kollektion oder dein Angebot."
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Button Text",
+      "default": "Jetzt shoppen"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "Button Link"
+    }
+  ],
+  "presets": [
+    {
+      "name": "⭐️ Hero Banner"
+    }
+  ]
+}
+{% endschema %}

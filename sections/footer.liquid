@@ -1,57 +1,139 @@
 <footer>
-  <div class="footer__copyright">
-    &copy;
-    {{ 'now' | date: '%Y' }}
-    {{ shop.name | link_to: routes.root_url }}, {{ powered_by_link }}
+  {% comment %}
+  Lean Premium Footer
+  Supports: Menu Blocks, Text Blocks, Newsletter
+{% endcomment %}
+
+<footer class="site-footer">
+  <div class="footer-grid">
+    {%- for block in section.blocks -%}
+      <div class="footer-block" {{ block.shopify_attributes }}>
+        
+        {%- if block.type == 'link_list' -%}
+          <h4 class="footer-heading">{{ block.settings.heading }}</h4>
+          <ul class="footer-nav">
+            {%- for link in block.settings.menu.links -%}
+              <li><a href="{{ link.url }}">{{ link.title }}</a></li>
+            {%- endfor -%}
+          </ul>
+
+        {%- elsif block.type == 'text' -%}
+          <h4 class="footer-heading">{{ block.settings.heading }}</h4>
+          <div class="footer-text">
+            {{ block.settings.subtext }}
+          </div>
+
+        {%- elsif block.type == 'newsletter' -%}
+          <h4 class="footer-heading">{{ block.settings.heading }}</h4>
+          <div class="footer-text">{{ block.settings.text }}</div>
+          
+          {%- form 'customer', id: 'FooterNewsletter', class: 'footer-newsletter-form' -%}
+            <input type="hidden" name="contact[tags]" value="newsletter">
+            <div class="newsletter-input-wrapper">
+              <input
+                id="NewsletterForm--{{ section.id }}"
+                type="email"
+                name="contact[email]"
+                class="newsletter-input"
+                value="{{ form.email }}"
+                aria-required="true"
+                autocorrect="off"
+                autocapitalize="off"
+                autocomplete="email"
+                placeholder="E-Mail Adresse"
+                required
+              >
+              <button type="submit" class="newsletter-btn" aria-label="Anmelden">
+                Subscribe
+              </button>
+            </div>
+            {%- if form.errors -%}
+              <small class="newsletter-message error">{{ form.errors.translated_fields['email'] | capitalize }} {{ form.errors.messages['email'] }}</small>
+            {%- endif -%}
+            {%- if form.posted_successfully? -%}
+              <small class="newsletter-message success">Danke für die Anmeldung!</small>
+            {%- endif -%}
+          {%- endform -%}
+
+        {%- endif -%}
+      </div>
+    {%- endfor -%}
   </div>
 
-  <div class="footer__links">
-    {% for link in section.settings.menu.links %}
-      {{ link.title | link_to: link.url }}
-    {% endfor %}
-  </div>
-
-  <div class="footer__payment">
-    {% if section.settings.show_payment_icons %}
-      {% for type in shop.enabled_payment_types %}
-        {{ type | payment_type_svg_tag }}
-      {% endfor %}
-    {% endif %}
-  </div>
+  <div class="footer-bottom">
+    <div class="footer-copyright">
+      &copy; {{ 'now' | date: "%Y" }} {{ shop.name }}. Alle Rechte vorbehalten.
+    </div>
+    </div>
 </footer>
-
-{% stylesheet %}
-  footer {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 2rem;
-  }
-  footer a {
-    text-decoration: none;
-    color: var(--color-foreground);
-  }
-  footer .footer__links,
-  footer .footer__payment {
-    display: flex;
-    gap: 1rem;
-  }
-{% endstylesheet %}
 
 {% schema %}
 {
-  "name": "t:general.footer",
-  "settings": [
+  "name": "Footer",
+  "max_blocks": 4,
+  "blocks": [
     {
       "type": "link_list",
-      "id": "menu",
-      "label": "t:labels.menu"
+      "name": "Menü",
+      "settings": [
+        {
+          "type": "text",
+          "id": "heading",
+          "default": "Rechtliches",
+          "label": "Überschrift"
+        },
+        {
+          "type": "link_list",
+          "id": "menu",
+          "default": "footer",
+          "label": "Menü wählen"
+        }
+      ]
     },
     {
-      "type": "checkbox",
-      "id": "show_payment_icons",
-      "label": "t:labels.show_payment_icons",
-      "default": true
+      "type": "text",
+      "name": "Text / Über uns",
+      "settings": [
+        {
+          "type": "text",
+          "id": "heading",
+          "default": "Über uns",
+          "label": "Überschrift"
+        },
+        {
+          "type": "richtext",
+          "id": "subtext",
+          "default": "<p>Erzähle deine Markengeschichte hier.</p>",
+          "label": "Text"
+        }
+      ]
+    },
+    {
+      "type": "newsletter",
+      "name": "Newsletter",
+      "settings": [
+        {
+          "type": "text",
+          "id": "heading",
+          "default": "Newsletter",
+          "label": "Überschrift"
+        },
+        {
+          "type": "text",
+          "id": "text",
+          "default": "Melde dich an für Updates.",
+          "label": "Beschreibung"
+        }
+      ]
     }
-  ]
+  ],
+  "default": {
+    "blocks": [
+      { "type": "text" },
+      { "type": "link_list" },
+      { "type": "link_list" },
+      { "type": "newsletter" }
+    ]
+  }
 }
 {% endschema %}

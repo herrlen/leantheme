@@ -1,0 +1,59 @@
+{% comment %}
+  Renders a product card
+  Accepts:
+  - card_product: {Object} The product object to render
+{% endcomment %}
+
+<div class="product-card">
+  <div class="card-image-wrapper">
+    <a href="{{ card_product.url }}">
+      {%- if card_product.featured_image -%}
+        <img
+          src="{{ card_product.featured_image | image_url: width: 533 }}"
+          sizes="(min-width: 1200px) 300px, (min-width: 768px) 50vw, 100vw"
+          loading="lazy"
+          width="{{ card_product.featured_image.width }}"
+          height="{{ card_product.featured_image.height }}"
+          alt="{{ card_product.featured_image.alt | escape }}"
+          class="card-image"
+        >
+        {%- if card_product.images[1] != blank -%}
+          <img
+            src="{{ card_product.images[1] | image_url: width: 533 }}"
+            loading="lazy"
+            class="card-image-hover"
+            alt="{{ card_product.images[1].alt | escape }}"
+          >
+        {%- endif -%}
+      {%- else -%}
+        {{ 'product-1' | placeholder_svg_tag: 'card-image placeholder' }}
+      {%- endif -%}
+    </a>
+
+    {%- if card_product.compare_at_price > card_product.price -%}
+      <span class="badge sale-badge">Sale</span>
+    {%- endif -%}
+    
+    <form method="post" action="/cart/add" class="quick-add-form">
+      <input type="hidden" name="id" value="{{ card_product.variants.first.id }}">
+      <button type="submit" class="button-primary quick-add-btn">
+        +
+      </button>
+    </form>
+  </div>
+
+  <div class="card-info">
+    <h3 class="card-title">
+      <a href="{{ card_product.url }}">{{ card_product.title }}</a>
+    </h3>
+    
+    <div class="card-price">
+      {%- if card_product.compare_at_price > card_product.price -%}
+        <span class="price-regular strike">{{ card_product.compare_at_price | money }}</span>
+        <span class="price-sale">{{ card_product.price | money }}</span>
+      {%- else -%}
+        <span class="price-regular">{{ card_product.price | money }}</span>
+      {%- endif -%}
+    </div>
+  </div>
+</div>

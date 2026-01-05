@@ -1,0 +1,126 @@
+<div class="featured-collection-wrapper section-{{ section.id }}-padding">
+  <div class="page-width">
+    {%- if section.settings.heading != blank -%}
+      <h2 class="featured-heading">{{ section.settings.heading }}</h2>
+    {%- endif -%}
+
+    <div class="product-grid-container">
+      {%- assign limit = section.settings.products_to_show -%}
+      
+      {%- for product in section.settings.collection.products limit: limit -%}
+        <div class="grid-item">
+          {% render 'product-card', card_product: product %}
+        </div>
+      {%- else -%}
+        {%- for i in (1..4) -%}
+          <div class="grid-item">
+            <div class="product-card">
+              <div class="card-image-wrapper">
+                 {{ 'product-' | append: i | placeholder_svg_tag }}
+              </div>
+              <div class="card-info">
+                <h3>Beispiel Produkt {{ i }}</h3>
+                <span>19,99 €</span>
+              </div>
+            </div>
+          </div>
+        {%- endfor -%}
+      {%- endfor -%}
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Lokales CSS für maximale Stabilität */
+  .section-{{ section.id }}-padding {
+    padding-top: {{ section.settings.padding_top }}px;
+    padding-bottom: {{ section.settings.padding_bottom }}px;
+    background-color: #fff; /* Sicherstellen, dass Hintergrund weiß ist */
+  }
+
+  .page-width {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .featured-heading {
+    text-align: center;
+    margin-bottom: 40px;
+    font-size: 2rem;
+  }
+
+  .product-grid-container {
+    display: grid;
+    /* Responsive Grid Logic */
+    grid-template-columns: repeat(2, 1fr); /* Standard: 2 Spalten (Mobile) */
+    gap: 20px;
+    width: 100%;
+  }
+
+  @media (min-width: 768px) {
+    .product-grid-container {
+      grid-template-columns: repeat(4, 1fr); /* Desktop: 4 Spalten */
+    }
+  }
+  
+  /* Schutz gegen kaputtes Layout: Items müssen sichtbar sein */
+  .grid-item {
+    min-width: 0; /* WICHTIG für CSS Grid, verhindert Overflow */
+  }
+</style>
+
+{% schema %}
+{
+  "name": "🔥 Featured Collection",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Überschrift",
+      "default": "Unsere Bestseller"
+    },
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Kategorie wählen"
+    },
+    {
+      "type": "range",
+      "id": "products_to_show",
+      "min": 2,
+      "max": 12,
+      "step": 2,
+      "default": 4,
+      "label": "Anzahl Produkte"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Abstand oben",
+      "default": 60
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Abstand unten",
+      "default": 60
+    }
+  ],
+  "presets": [
+    {
+      "name": "🔥 Featured Collection"
+    }
+  ]
+}
+{% endschema %}
