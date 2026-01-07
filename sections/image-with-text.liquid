@@ -1,0 +1,242 @@
+{% comment %}
+  Lean Image with Text
+  Features: Flexible Layout, Color Schemes, Custom Border Radius
+{% endcomment %}
+
+<div class="section-image-text section-{{ section.id }}-padding color-{{ section.settings.color_scheme }}">
+  <div class="page-width">
+    <div class="image-text-grid {% if section.settings.layout == 'right' %}layout-reverse{% endif %}">
+      
+      <div class="grid-item-media">
+        <div class="media-wrapper">
+          {%- if section.settings.image != blank -%}
+            <img
+              src="{{ section.settings.image | image_url: width: 1000 }}"
+              alt="{{ section.settings.image.alt | escape }}"
+              width="{{ section.settings.image.width }}"
+              height="{{ section.settings.image.height }}"
+              loading="lazy"
+              class="image-text-img"
+            >
+          {%- else -%}
+            {{ 'image' | placeholder_svg_tag: 'image-text-img placeholder' }}
+          {%- endif -%}
+        </div>
+      </div>
+
+      <div class="grid-item-content">
+        <div class="content-wrapper">
+          {%- if section.settings.subheading != blank -%}
+            <span class="subheading">{{ section.settings.subheading }}</span>
+          {%- endif -%}
+          
+          {%- if section.settings.heading != blank -%}
+            <h2 class="heading">{{ section.settings.heading }}</h2>
+          {%- endif -%}
+          
+          {%- if section.settings.text != blank -%}
+            <div class="rte body-text">{{ section.settings.text }}</div>
+          {%- endif -%}
+
+          {%- if section.settings.button_label != blank -%}
+            <a href="{{ section.settings.button_link }}" class="button-primary mt-4">
+              {{ section.settings.button_label }}
+            </a>
+          {%- endif -%}
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<style>
+  .section-{{ section.id }}-padding {
+    padding-top: {{ section.settings.padding_top }}px;
+    padding-bottom: {{ section.settings.padding_bottom }}px;
+  }
+
+  /* Dynamischer Radius vom Kunden */
+  .media-wrapper {
+    border-radius: {{ section.settings.corner_radius }}px; 
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  }
+
+  /* Farbschemata */
+  .color-background-1 { background-color: #ffffff; color: #000000; }
+  .color-background-2 { background-color: #f7f7f7; color: #000000; }
+  .color-inverse { background-color: #1a1a1a; color: #ffffff; }
+
+  /* Grid Layout */
+  .image-text-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 40px;
+    align-items: center;
+  }
+
+  @media (min-width: 990px) {
+    .image-text-grid {
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+    }
+    
+    /* Bild Rechts Logik */
+    .layout-reverse {
+      direction: rtl; 
+    }
+    .layout-reverse > * {
+      direction: ltr; 
+    }
+  }
+
+  .image-text-img {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: cover;
+    aspect-ratio: 4/3; 
+  }
+
+  .content-wrapper {
+    padding: 20px 0;
+  }
+
+  .subheading {
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.1em;
+    opacity: 0.7;
+    margin-bottom: 10px;
+    display: block;
+    font-weight: 700;
+  }
+
+  .heading {
+    font-size: clamp(2rem, 4vw, 2.5rem);
+    line-height: 1.1;
+    margin-bottom: 20px;
+    margin-top: 0;
+  }
+
+  .body-text {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    margin-bottom: 30px;
+    opacity: 0.9;
+  }
+  
+  .mt-4 { margin-top: 1.5rem; display: inline-block; }
+</style>
+
+{% schema %}
+{
+  "name": "Bild mit Text",
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Bild"
+    },
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "Bild Position",
+      "options": [
+        { "value": "left", "label": "Links" },
+        { "value": "right", "label": "Rechts" }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "select",
+      "id": "color_scheme",
+      "label": "Hintergrund Farbe",
+      "options": [
+        { "value": "background-1", "label": "Weiß" },
+        { "value": "background-2", "label": "Hellgrau" },
+        { "value": "inverse", "label": "Dunkel (Invertiert)" }
+      ],
+      "default": "background-1"
+    },
+    {
+      "type": "header",
+      "content": "Design"
+    },
+    {
+      "type": "range",
+      "id": "corner_radius",
+      "min": 0,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "label": "Ecken abrunden",
+      "default": 0,
+      "info": "0px = Eckig, 40px = Rund"
+    },
+    {
+      "type": "header",
+      "content": "Inhalt"
+    },
+    {
+      "type": "text",
+      "id": "subheading",
+      "label": "Subline",
+      "default": "Unsere Story"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Überschrift",
+      "default": "Qualität, die überzeugt"
+    },
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "Text",
+      "default": "<p>Beschreibe hier deine Marke, deine Produktion oder die Vorteile deines Produkts.</p>"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Button Text",
+      "default": "Mehr erfahren"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "Button Link"
+    },
+    {
+      "type": "header",
+      "content": "Abstände"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Abstand oben",
+      "default": 60
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Abstand unten",
+      "default": 60
+    }
+  ],
+  "presets": [
+    {
+      "name": "Bild mit Text"
+    }
+  ]
+}
+{% endschema %}

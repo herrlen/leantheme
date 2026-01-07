@@ -1,0 +1,66 @@
+{% comment %}
+  Lean Cart Drawer
+  Wird per AJAX aktualisiert.
+{% endcomment %}
+
+<div class="drawer-container" id="CartDrawer">
+  <div class="drawer-inner">
+    
+    <div class="drawer-header">
+      <h2 class="drawer-title">Dein Warenkorb</h2>
+      <button type="button" class="drawer-close" onclick="closeCartDrawer()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
+
+    <div class="drawer-body">
+      {%- if cart.item_count > 0 -%}
+        <div class="drawer-items">
+          {%- for item in cart.items -%}
+            <div class="drawer-item">
+              {% if item.image %}
+                <img class="drawer-item-img" src="{{ item.image | image_url: width: 200 }}" alt="{{ item.title | escape }}" width="80" height="80" loading="lazy">
+              {% endif %}
+              
+              <div class="drawer-item-info">
+                <a href="{{ item.url }}" class="drawer-item-title">{{ item.product.title }}</a>
+                {% unless item.product.has_only_default_variant %}
+                  <p class="drawer-item-variant">{{ item.variant.title }}</p>
+                {% endunless %}
+                <div class="drawer-item-price">
+                  {{ item.final_line_price | money }}
+                </div>
+                <div class="drawer-qty-wrapper">
+                    <span class="qty-text">Menge: {{ item.quantity }}</span>
+                </div>
+              </div>
+            </div>
+          {%- endfor -%}
+        </div>
+      {%- else -%}
+        <div class="drawer-empty">
+          <p>Dein Warenkorb ist leer.</p>
+          <button class="button-primary" onclick="closeCartDrawer()">Weiter shoppen</button>
+        </div>
+      {%- endif -%}
+    </div>
+
+    {%- if cart.item_count > 0 -%}
+      <div class="drawer-footer">
+        <div class="drawer-subtotal">
+          <span>Zwischensumme</span>
+          <span>{{ cart.total_price | money }}</span>
+        </div>
+        <div class="drawer-buttons">
+          <a href="/checkout" class="button-primary button-full">Zur Kasse</a>
+        </div>
+      </div>
+    {%- endif -%}
+    
+  </div>
+</div>
+<div class="drawer-overlay" onclick="closeCartDrawer()"></div>
+
+{% schema %}
+{ "name": "Cart Drawer", "settings": [] }
+{% endschema %}

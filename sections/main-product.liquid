@@ -1,0 +1,308 @@
+{% comment %}
+  Lean Product Page
+  Layout: 2 Columns (Media Left, Info Right)
+  Features: Native Variant Picker, Dynamic Checkout
+{% endcomment %}
+
+<section class="product-section page-width section-{{ section.id }}-padding">
+  <div class="product-container">
+    
+    <div class="product-media">
+      {%- if product.featured_media -%}
+        <div class="media-gallery">
+          {%- for media in product.media -%}
+            <div class="media-item">
+              <img
+                src="{{ media | image_url: width: 1000 }}"
+                alt="{{ media.alt | escape }}"
+                width="{{ media.width }}"
+                height="{{ media.height }}"
+                loading="{% if forloop.first %}eager{% else %}lazy{% endif %}"
+                class="product-img"
+              >
+            </div>
+          {%- endfor -%}
+        </div>
+      {%- else -%}
+        {{ 'product-1' | placeholder_svg_tag: 'product-img placeholder' }}
+      {%- endif -%}
+    </div>
+
+    <div class="product-info">
+      {% render 'breadcrumbs' %}
+      {%- assign current_variant = product.selected_or_first_available_variant -%}
+
+      {%- for block in section.blocks -%}
+        {%- case block.type -%}
+          
+          {%- when '@app' -%}
+            {% render block %}
+          
+          {%- when 'title' -%}
+            <h1 class="product-title" {{ block.shopify_attributes }}>{{ product.title }}</h1>
+          
+          {%- when 'price' -%}
+            <div class="product-price" {{ block.shopify_attributes }}>
+              <span class="price-regular {% if current_variant.compare_at_price > current_variant.price %}on-sale{% endif %}">
+                {{ current_variant.price | money }}
+              </span>
+              {%- if current_variant.compare_at_price > current_variant.price -%}
+                <span class="price-compare">{{ current_variant.compare_at_price | money }}</span>
+                <span class="badge sale-badge">Sale</span>
+              {%- endif -%}
+            </div>
+            {%- if shop.taxes_included -%}
+              <div class="tax-note">Inkl. MwSt., zzgl. Versand</div>
+            {%- endif -%}
+
+          {%- when 'description' -%}
+            <div class="product-description rte" {{ block.shopify_attributes }}>
+              {{ product.description }}
+            </div>
+
+          {%- when 'variant_picker' -%}
+            {%- unless product.has_only_default_variant -%}
+              <div class="variant-picker" {{ block.shopify_attributes }}>
+                <label for="Option-{{ section.id }}" class="form-label">Variante wählen</label>
+                <div class="select-wrapper">
+                  <select name="id" id="Option-{{ section.id }}" class="product-variant-select" form="product-form-{{ section.id }}">
+                    {%- for variant in product.variants -%}
+                      <option
+                        value="{{ variant.id }}"
+                        {% if variant == current_variant %}selected="selected"{% endif %}
+                        {% unless variant.available %}disabled="disabled"{% endunless %}
+                      >
+                        {{ variant.title }} - {{ variant.price | money }}
+                      </option>
+                    {%- endfor -%}
+                  </select>
+                  <svg class="select-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </div>
+              </div>
+            {%- endunless -%}
+
+          {%- when 'buy_buttons' -%}
+            <div {{ block.shopify_attributes }}>
+              {%- form 'product', product, id: "product-form-{{ section.id }}", class: 'product-form' -%}
+                <input type="hidden" name="id" value="{{ current_variant.id }}">
+                
+                <div class="product-form-buttons">
+                  <button
+                    type="submit"
+                    name="add"
+                    class="button-primary add-to-cart-btn"
+                    {% unless current_variant.available %}disabled{% endunless %}
+                  >
+                    {%- if current_variant.available -%}
+                      In den Warenkorb
+                    {%- else -%}
+                      Ausverkauft
+                    {%- endif -%}
+                  </button>
+                </div>
+              {%- endform -%}
+            </div>
+
+        {%- endcase -%}
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+
+<style>
+  /* LOKALES CSS für die Produktseite */
+  .section-{{ section.id }}-padding {
+    padding-top: {{ section.settings.padding_top }}px;
+    padding-bottom: {{ section.settings.padding_bottom }}px;
+  }
+
+  .product-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  @media (min-width: 990px) {
+    .product-container {
+      grid-template-columns: 1.2fr 1fr; /* Bild etwas breiter als Text */
+      align-items: start;
+    }
+    
+    .product-info {
+      position: sticky; /* Sticky Info beim Scrollen */
+      top: 100px;
+    }
+  }
+
+  /* Media Gallery */
+  .media-gallery {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .media-item {
+    border-radius: 8px;
+    overflow: hidden;
+    background: #f4f4f4;
+  }
+  
+  .product-img {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: cover;
+  }
+
+  /* Info Blocks */
+  .product-title {
+    font-size: 2rem;
+    margin: 0 0 10px;
+    line-height: 1.2;
+  }
+
+  .product-price {
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 5px;
+  }
+
+  .price-compare {
+    text-decoration: line-through;
+    color: #888;
+    font-size: 1.2rem;
+  }
+  
+  .sale-badge {
+    background: #ef4444;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: bold;
+  }
+
+  .tax-note {
+    font-size: 0.8rem;
+    color: #666;
+    margin-bottom: 20px;
+  }
+
+  .product-description {
+    margin: 20px 0;
+    line-height: 1.6;
+    color: #444;
+  }
+
+  /* Variant Picker */
+  .variant-picker {
+    margin-bottom: 25px;
+  }
+  
+  .form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+  
+  .select-wrapper {
+    position: relative;
+    max-width: 300px;
+  }
+  
+  .product-variant-select {
+    width: 100%;
+    padding: 12px 40px 12px 15px;
+    border: 1px solid #e5e5e5;
+    border-radius: 4px;
+    background-color: #fff;
+    font-size: 1rem;
+    appearance: none; /* Entfernt Standard-Pfeil */
+    cursor: pointer;
+  }
+  
+  .select-arrow {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: #666;
+  }
+
+  /* Buttons */
+  .add-to-cart-btn {
+    width: 100%;
+    padding: 16px;
+    font-size: 1.1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 10px;
+  }
+  
+  .add-to-cart-btn:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+  }
+</style>
+
+{% schema %}
+{
+  "name": "Produkt Details",
+  "settings": [
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Abstand oben",
+      "default": 36
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Abstand unten",
+      "default": 36
+    }
+  ],
+  "blocks": [
+    {
+      "type": "@app"
+    },
+    {
+      "type": "title",
+      "name": "Titel",
+      "limit": 1
+    },
+    {
+      "type": "price",
+      "name": "Preis",
+      "limit": 1
+    },
+    {
+      "type": "variant_picker",
+      "name": "Varianten Auswahl",
+      "limit": 1
+    },
+    {
+      "type": "buy_buttons",
+      "name": "Kaufen Buttons",
+      "limit": 1
+    },
+    {
+      "type": "description",
+      "name": "Beschreibung",
+      "limit": 1
+    }
+  ]
+}
+{% endschema %}

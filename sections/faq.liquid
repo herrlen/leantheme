@@ -1,0 +1,210 @@
+{% comment %}
+  Lean FAQ Section (Accordion)
+  Uses native <details> tag for accessibility + CSS animation.
+{% endcomment %}
+
+<div class="faq-section section-{{ section.id }}-padding">
+  <div class="page-width page-width--narrow">
+    
+    {%- if section.settings.heading != blank -%}
+      <h2 class="faq-heading text-{{ section.settings.heading_alignment }}">
+        {{ section.settings.heading }}
+      </h2>
+    {%- endif -%}
+
+    {%- if section.settings.text != blank -%}
+      <div class="faq-text text-{{ section.settings.heading_alignment }}">
+        {{ section.settings.text }}
+      </div>
+    {%- endif -%}
+
+    <div class="faq-container">
+      {%- for block in section.blocks -%}
+        <div class="faq-item" {{ block.shopify_attributes }}>
+          <details>
+            <summary>
+              <span class="faq-question">{{ block.settings.question }}</span>
+              <span class="icon-plus">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1V11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M1 6H11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              </span>
+            </summary>
+            <div class="faq-answer rte">
+              {{ block.settings.answer }}
+            </div>
+          </details>
+        </div>
+      {%- endfor -%}
+    </div>
+
+  </div>
+</div>
+
+<style>
+  .section-{{ section.id }}-padding {
+    padding-top: {{ section.settings.padding_top }}px;
+    padding-bottom: {{ section.settings.padding_bottom }}px;
+    background-color: {{ section.settings.bg_color }};
+  }
+
+  /* Zentrierter schmaler Container für Lesbarkeit */
+  .page-width--narrow {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  .text-center { text-align: center; }
+  .text-left { text-align: left; }
+
+  .faq-heading {
+    font-size: 2rem;
+    margin-bottom: 10px;
+  }
+  
+  .faq-text {
+    margin-bottom: 40px;
+    opacity: 0.8;
+  }
+
+  /* Accordion Styling */
+  .faq-item {
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+  }
+  
+  .faq-item:first-child {
+    border-top: 1px solid rgba(0,0,0,0.1);
+  }
+
+  details {
+    transition: all 0.3s ease;
+  }
+
+  summary {
+    padding: 20px 0;
+    cursor: pointer;
+    list-style: none; /* Entfernt Standard-Dreieck */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+  }
+
+  summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .faq-question {
+    font-weight: 600;
+    font-size: 1.1rem;
+    padding-right: 20px;
+  }
+
+  .icon-plus {
+    transition: transform 0.3s ease;
+    flex-shrink: 0;
+  }
+
+  /* Wenn geöffnet: Icon drehen */
+  details[open] summary .icon-plus {
+    transform: rotate(45deg); /* Aus Plus wird X */
+  }
+
+  .faq-answer {
+    padding-bottom: 25px;
+    line-height: 1.6;
+    color: rgba(0,0,0,0.8);
+    /* Simple Animation beim Öffnen */
+    animation: fadeIn 0.4s ease forwards;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+</style>
+
+{% schema %}
+{
+  "name": "FAQ / Akkordeon",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Überschrift",
+      "default": "Häufige Fragen"
+    },
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "Einleitungstext"
+    },
+    {
+      "type": "select",
+      "id": "heading_alignment",
+      "label": "Textausrichtung",
+      "options": [
+        { "value": "left", "label": "Links" },
+        { "value": "center", "label": "Zentriert" }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "Hintergrundfarbe",
+      "default": "#ffffff"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Abstand oben",
+      "default": 60
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Abstand unten",
+      "default": 60
+    }
+  ],
+  "blocks": [
+    {
+      "type": "question",
+      "name": "Frage",
+      "settings": [
+        {
+          "type": "text",
+          "id": "question",
+          "label": "Frage",
+          "default": "Wie lange dauert der Versand?"
+        },
+        {
+          "type": "richtext",
+          "id": "answer",
+          "label": "Antwort",
+          "default": "<p>Wir versenden innerhalb von 24 Stunden. Dein Paket ist meist in 2-3 Tagen bei dir.</p>"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "FAQ / Akkordeon",
+      "blocks": [
+        { "type": "question" },
+        { "type": "question" },
+        { "type": "question" }
+      ]
+    }
+  ]
+}
+{% endschema %}

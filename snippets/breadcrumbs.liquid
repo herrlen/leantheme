@@ -1,0 +1,63 @@
+{% comment %}
+  Robust Breadcrumbs
+  Logik: Home > (Collection) > Product
+{% endcomment %}
+
+<nav class="breadcrumbs" role="navigation" aria-label="breadcrumbs">
+  <ol class="breadcrumbs__list">
+    
+    <li class="breadcrumbs__item">
+      <a class="breadcrumbs__link" href="{{ routes.root_url }}">Startseite</a>
+    </li>
+
+    {%- if collection -%}
+      <li class="breadcrumbs__item">
+        <span class="breadcrumbs__separator">/</span>
+        <a class="breadcrumbs__link" href="{{ collection.url }}">{{ collection.title }}</a>
+      </li>
+    {%- endif -%}
+
+    <li class="breadcrumbs__item">
+      <span class="breadcrumbs__separator">/</span>
+      <span class="breadcrumbs__current" aria-current="page">{{ product.title }}</span>
+    </li>
+    
+  </ol>
+</nav>
+
+<style>
+  .breadcrumbs {
+    font-size: 0.85rem;
+    margin-bottom: 15px;
+    color: #666;
+  }
+  .breadcrumbs__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .breadcrumbs__item {
+    display: inline-flex;
+    align-items: center;
+  }
+  .breadcrumbs__link {
+    color: inherit;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .breadcrumbs__link:hover {
+    color: #000;
+    text-decoration: underline;
+  }
+  .breadcrumbs__separator {
+    margin: 0 8px;
+    opacity: 0.5;
+  }
+  .breadcrumbs__current {
+    opacity: 0.8;
+    color: #000;
+  }
+</style>

@@ -1,0 +1,208 @@
+{% comment %}
+  Lean Marquee (Laufschrift)
+  Modus: Statisch (0) oder Animiert (1-20)
+{% endcomment %}
+
+<div class="marquee-section section-{{ section.id }}">
+  <div class="marquee-track-wrapper">
+    
+    {%- if section.settings.speed > 0 -%}
+      <div class="marquee-track animated">
+        {%- for i in (1..10) -%}
+          <div class="marquee-content">
+            {%- for block in section.blocks -%}
+              <span class="marquee-item" {{ block.shopify_attributes }}>
+                {{ block.settings.text }}
+                {%- if section.settings.separator != blank -%}
+                  <span class="marquee-separator">{{ section.settings.separator }}</span>
+                {%- endif -%}
+              </span>
+            {%- endfor -%}
+          </div>
+        {%- endfor -%}
+      </div>
+
+    {%- else -%}
+      <div class="marquee-static">
+        {%- for block in section.blocks -%}
+          <span class="marquee-item" {{ block.shopify_attributes }}>
+            {{ block.settings.text }}
+            {%- unless forloop.last -%}
+              {%- if section.settings.separator != blank -%}
+                <span class="marquee-separator">{{ section.settings.separator }}</span>
+              {%- endif -%}
+            {%- endunless -%}
+          </span>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+
+  </div>
+</div>
+
+<style>
+  .section-{{ section.id }} {
+    background-color: {{ section.settings.bg_color }};
+    color: {{ section.settings.text_color }};
+    padding: {{ section.settings.padding_y }}px 0;
+    overflow: hidden;
+    position: relative;
+    border-top: 1px solid rgba(0,0,0,0.05);
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+  }
+
+  .marquee-item {
+    font-size: {{ section.settings.font_size }}px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .marquee-separator {
+    margin: 0 30px;
+    opacity: 0.6;
+  }
+
+  /* === ANIMATION MODUS === */
+  .marquee-track.animated {
+    display: flex;
+    width: max-content;
+    /* Berechnung: 65 - (Speed * 3). 
+       Speed 1 = 62s (Langsam)
+       Speed 20 = 5s (Schnell) 
+    */
+    {% assign duration = 65 | minus: section.settings.speed | minus: section.settings.speed | minus: section.settings.speed %}
+    animation: marquee-scroll {{ duration }}s linear infinite;
+  }
+
+  .marquee-content {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  /* === STATISCH MODUS === */
+  .marquee-static {
+    display: flex;
+    justify-content: center; /* Zentriert den Text */
+    align-items: center;
+    flex-wrap: wrap; /* Falls Text zu lang, umbrechen */
+    gap: 10px;
+    text-align: center;
+    width: 100%;
+  }
+
+  /* Keyframes */
+  @keyframes marquee-scroll {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-100%); }
+  }
+  
+  {% if section.settings.direction == 'right' %}
+  @keyframes marquee-scroll {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(0); }
+  }
+  {% endif %}
+
+</style>
+
+{% schema %}
+{
+  "name": "⚡️ Laufschrift (Marquee)",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Animation"
+    },
+    {
+      "type": "range",
+      "id": "speed",
+      "min": 0,
+      "max": 20,
+      "step": 1,
+      "label": "Geschwindigkeit",
+      "default": 0,
+      "info": "0 = Statisch (Zentriert), 1 = Langsam, 20 = Schnell"
+    },
+    {
+      "type": "select",
+      "id": "direction",
+      "label": "Laufrichtung",
+      "options": [
+        { "value": "left", "label": "Nach Links" },
+        { "value": "right", "label": "Nach Rechts" }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "header",
+      "content": "Design"
+    },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "Hintergrund",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Textfarbe",
+      "default": "#ffffff"
+    },
+    {
+      "type": "range",
+      "id": "font_size",
+      "min": 12,
+      "max": 60,
+      "step": 2,
+      "unit": "px",
+      "label": "Schriftgröße",
+      "default": 14
+    },
+    {
+      "type": "range",
+      "id": "padding_y",
+      "min": 5,
+      "max": 40,
+      "step": 1,
+      "unit": "px",
+      "label": "Innenabstand (Höhe)",
+      "default": 10
+    },
+    {
+      "type": "text",
+      "id": "separator",
+      "label": "Trennzeichen",
+      "default": "+++"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "text",
+      "name": "Text",
+      "settings": [
+        {
+          "type": "text",
+          "id": "text",
+          "label": "Inhalt",
+          "default": "Kostenloser Versand"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "⚡️ Laufschrift (Marquee)",
+      "blocks": [
+        { "type": "text" },
+        { "type": "text" },
+        { "type": "text" }
+      ]
+    }
+  ]
+}
+{% endschema %}
