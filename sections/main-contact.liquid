@@ -1,0 +1,87 @@
+<div class="contact-section section-{{ section.id }}-padding">
+  <div class="page-width page-width--narrow">
+    
+    <h1 class="main-page-title">{{ page.title | escape }}</h1>
+
+    {%- if page.content != blank -%}
+      <div class="rte contact-content">
+        {{ page.content }}
+      </div>
+    {%- endif -%}
+
+    {% form 'contact' %}
+      {%- if form.posted_successfully? -%}
+        <div class="form-status form-status-list" tabindex="-1" autofocus>
+          ✅ Danke für deine Nachricht!
+        </div>
+      {%- elsif form.errors -%}
+        <div class="form-status form-status-list">
+          ❌ Bitte überprüfe deine Eingaben.
+        </div>
+      {%- endif -%}
+
+      <div class="contact-fields">
+        <div class="field">
+          <input class="field__input" type="text" name="contact[Name]" id="ContactForm-name" placeholder="Name">
+        </div>
+        <div class="field">
+          <input class="field__input" type="email" name="contact[email]" id="ContactForm-email" placeholder="E-Mail" required>
+        </div>
+      </div>
+      
+      <div class="field">
+        <input class="field__input" type="tel" name="contact[phone]" id="ContactForm-phone" placeholder="Telefonnummer">
+      </div>
+      
+      <div class="field">
+        <textarea class="field__input text-area" name="contact[body]" id="ContactForm-body" placeholder="Deine Nachricht"></textarea>
+      </div>
+      
+      <div class="contact__button">
+        <button type="submit" class="button">Absenden</button>
+      </div>
+    {% endform %}
+  </div>
+</div>
+
+<style>
+  .section-{{ section.id }}-padding {
+    padding-top: {{ section.settings.padding_top | default: 60 }}px;
+    padding-bottom: {{ section.settings.padding_bottom | default: 60 }}px;
+  }
+  .page-width {
+    margin: 0 auto; max-width: 1200px;
+    padding-left: clamp(20px, {{ section.settings.padding_side | default: 20 }}px, 10vw);
+    padding-right: clamp(20px, {{ section.settings.padding_side | default: 20 }}px, 10vw);
+  }
+  .page-width--narrow { max-width: 600px; margin: 0 auto; }
+  
+  .main-page-title { text-align: center; font-size: 2.5rem; margin-bottom: 20px; }
+  .contact-content { text-align: center; margin-bottom: 40px; }
+  
+  .field { margin-bottom: 15px; }
+  .field__input { width: 100%; padding: 12px 15px; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem; }
+  .text-area { resize: vertical; min-height: 120px; }
+  .button { width: 100%; padding: 15px; background: #000; color: #fff; border: none; cursor: pointer; border-radius: 4px; font-weight: bold; }
+  .contact-fields { display: grid; gap: 15px; }
+  @media(min-width: 750px) { .contact-fields { grid-template-columns: 1fr 1fr; } }
+  .form-status { margin-bottom: 20px; padding: 10px; background: #f4f4f4; text-align: center; border-radius: 4px; }
+</style>
+
+{% schema %}
+{
+  "name": "Kontaktformular",
+  "settings": [
+    { "type": "range", "id": "padding_side", "min": 20, "max": 200, "step": 10, "default": 20, "label": "Seitlicher Abstand" },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 100, "step": 4, "default": 60, "label": "Abstand oben" },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 100, "step": 4, "default": 60, "label": "Abstand unten" }
+  ]
+}
+{% endschema %}
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0, "max": 100, "step": 4, "default": 60, "label": "Abstand unten"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,89 @@
+<div class="collection-section section-{{ section.id }}-padding">
+  <div class="page-width">
+    
+    <div class="collection-header">
+      <h1 class="collection-title">{{ collection.title }}</h1>
+      {%- if collection.description != blank -%}
+        <div class="collection-description rte">{{ collection.description }}</div>
+      {%- endif -%}
+    </div>
+
+    {%- paginate collection.products by 16 -%}
+      <div class="product-grid">
+        {%- for product in collection.products -%}
+          <a href="{{ product.url }}" class="product-card">
+            <div class="card-media">
+              <img src="{{ product.featured_image | img_url: '600x' }}" 
+                   alt="{{ product.featured_image.alt | escape }}" 
+                   width="600"
+                   height="600"
+                   loading="lazy" 
+                   style="width: 100%; height: 100%; object-fit: cover;">
+            </div>
+            <div class="card-info">
+              <h3 class="card-title">{{ product.title }}</h3>
+              <div class="card-price">
+                {% if product.compare_at_price > product.price %}<span class="compare">{{ product.compare_at_price | money }}</span>{% endif %}
+                <span>{{ product.price | money }}</span>
+              </div>
+            </div>
+          </a>
+        {%- endfor -%}
+      </div>
+
+      {%- if paginate.pages > 1 -%}
+        <div class="pagination">
+          {{ paginate | default_pagination }}
+        </div>
+      {%- endif -%}
+    {%- endpaginate -%}
+  </div>
+</div>
+
+<style>
+  .section-{{ section.id }}-padding {
+    padding-top: {{ section.settings.padding_top | default: 60 }}px;
+    padding-bottom: {{ section.settings.padding_bottom | default: 60 }}px;
+  }
+  .page-width {
+    margin: 0 auto; max-width: 1200px;
+    padding-left: clamp(20px, {{ section.settings.padding_side | default: 20 }}px, 10vw);
+    padding-right: clamp(20px, {{ section.settings.padding_side | default: 20 }}px, 10vw);
+  }
+  
+  .collection-header { text-align: center; margin-bottom: 50px; }
+  .collection-title { font-size: 2.5rem; margin-bottom: 10px; }
+  .collection-description { max-width: 800px; margin: 0 auto; opacity: 0.8; }
+
+  .product-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px 15px; }
+  @media(min-width: 750px) {
+    .product-grid { grid-template-columns: repeat({{ section.settings.columns_desktop | default: 4 }}, 1fr); gap: 40px 30px; }
+  }
+
+  .product-card { text-decoration: none; color: inherit; display: block; }
+  .card-media { position: relative; width: 100%; aspect-ratio: 1/1; overflow: hidden; border-radius: 4px; background: #f4f4f4; }
+  
+  /* Bild Styles angepasst */
+  .card-media img { display: block; transition: transform 0.3s; }
+  .product-card:hover .card-media img { transform: scale(1.02); }
+  
+  .card-info { margin-top: 10px; display: flex; justify-content: space-between; font-size: 1rem; }
+  .card-price { font-weight: bold; white-space: nowrap; margin-left: 10px; }
+  .compare { text-decoration: line-through; opacity: 0.5; margin-right: 5px; font-weight: normal; }
+
+  .pagination { margin-top: 50px; text-align: center; display: flex; justify-content: center; gap: 10px; }
+  .pagination span, .pagination a { padding: 8px 12px; border: 1px solid #ddd; text-decoration: none; color: inherit; }
+  .pagination .current { background: #000; color: #fff; border-color: #000; }
+</style>
+
+{% schema %}
+{
+  "name": "Kategorie Grid",
+  "settings": [
+    { "type": "range", "id": "columns_desktop", "min": 2, "max": 5, "step": 1, "default": 4, "label": "Spalten Desktop" },
+    { "type": "range", "id": "padding_side", "min": 20, "max": 200, "step": 10, "default": 20, "label": "Seitlicher Abstand" },
+    { "type": "range", "id": "padding_top", "min": 0, "max": 100, "step": 4, "default": 60, "label": "Abstand oben" },
+    { "type": "range", "id": "padding_bottom", "min": 0, "max": 100, "step": 4, "default": 60, "label": "Abstand unten" }
+  ]
+}
+{% endschema %}

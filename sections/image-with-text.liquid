@@ -1,6 +1,6 @@
 {% comment %}
   Lean Image with Text
-  Features: Custom Color Picker ONLY (No Presets), Flexible Layout, Border Radius
+  Features: Custom Color Picker, Radius, Flexible Layout, Customizable Side Padding
 {% endcomment %}
 
 <div class="section-image-text section-{{ section.id }}-padding">
@@ -51,17 +51,29 @@
 </div>
 
 <style>
-  /* BASIS STYLE (Standard: Weiß/Schwarz) */
+  /* BASIS STYLE */
   .section-image-text {
     background-color: #ffffff;
     color: #000000;
+  }
+
+  /* CONTAINER LOGIC (Hier ist der Fix!) */
+  .page-width {
+    max-width: 1200px; /* Maximale Breite */
+    margin: 0 auto;    /* Zentriert den Container */
+    padding-left: 20px; /* Minimaler Schutzabstand Handy */
+    padding-right: 20px;
+    
+    /* ZUSÄTZLICHER USER-ABSTAND */
+    padding-left: clamp(20px, {{ section.settings.padding_side }}px, 10vw);
+    padding-right: clamp(20px, {{ section.settings.padding_side }}px, 10vw);
   }
 
   .section-{{ section.id }}-padding {
     padding-top: {{ section.settings.padding_top }}px;
     padding-bottom: {{ section.settings.padding_bottom }}px;
     
-    /* OVERRIDE: Wenn Custom Farbe gewählt */
+    /* COLOR OVERRIDE */
     {% if section.settings.custom_bg_color != blank and section.settings.custom_bg_color != 'rgba(0,0,0,0)' %}
       background-color: {{ section.settings.custom_bg_color }} !important;
     {% endif %}
@@ -77,7 +89,7 @@
     }
   {% endif %}
 
-  /* Dynamischer Radius */
+  /* Radius */
   .media-wrapper {
     border-radius: {{ section.settings.corner_radius }}px; 
     overflow: hidden;
@@ -102,39 +114,13 @@
   }
 
   .image-text-img {
-    width: 100%;
-    height: auto;
-    display: block;
-    object-fit: cover;
-    aspect-ratio: 4/3; 
+    width: 100%; height: auto; display: block; object-fit: cover; aspect-ratio: 4/3; 
   }
 
   .content-wrapper { padding: 20px 0; }
-
-  .subheading {
-    text-transform: uppercase;
-    font-size: 0.85rem;
-    letter-spacing: 0.1em;
-    opacity: 0.7;
-    margin-bottom: 10px;
-    display: block;
-    font-weight: 700;
-  }
-
-  .heading {
-    font-size: clamp(2rem, 4vw, 2.5rem);
-    line-height: 1.1;
-    margin-bottom: 20px;
-    margin-top: 0;
-  }
-
-  .body-text {
-    font-size: 1.1rem;
-    line-height: 1.6;
-    margin-bottom: 30px;
-    opacity: 0.9;
-  }
-  
+  .subheading { text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.1em; opacity: 0.7; margin-bottom: 10px; display: block; font-weight: 700; }
+  .heading { font-size: clamp(2rem, 4vw, 2.5rem); line-height: 1.1; margin-bottom: 20px; margin-top: 0; }
+  .body-text { font-size: 1.1rem; line-height: 1.6; margin-bottom: 30px; opacity: 0.9; }
   .mt-4 { margin-top: 1.5rem; display: inline-block; }
 </style>
 
@@ -162,10 +148,6 @@
       "content": "Design & Farben"
     },
     {
-      "type": "paragraph",
-      "content": "Wähle deine Farben. Standard ist Weiß."
-    },
-    {
       "type": "color",
       "id": "custom_bg_color",
       "label": "Hintergrundfarbe",
@@ -186,6 +168,24 @@
       "unit": "px",
       "label": "Ecken abrunden",
       "default": 12
+    },
+    {
+      "type": "header",
+      "content": "Abstände & Layout"
+    },
+    {
+      "type": "paragraph",
+      "content": "Steuere hier, wie viel Platz links und rechts gelassen wird."
+    },
+    {
+      "type": "range",
+      "id": "padding_side",
+      "min": 20,
+      "max": 200,
+      "step": 10,
+      "unit": "px",
+      "label": "Seitlicher Abstand (Padding)",
+      "default": 20
     },
     {
       "type": "header",
@@ -219,10 +219,6 @@
       "type": "url",
       "id": "button_link",
       "label": "Button Link"
-    },
-    {
-      "type": "header",
-      "content": "Abstände"
     },
     {
       "type": "range",
