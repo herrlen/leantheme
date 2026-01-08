@@ -1,128 +1,202 @@
-{%- style -%}
+{% comment %}
+  Lean Trusted Bar (USP)
+  Update: Jetzt mit Custom Icon Upload!
+{% endcomment %}
+
+<div class="trusted-bar section-{{ section.id }}-padding">
+  <div class="page-width">
+    <div class="trusted-grid">
+      
+      {%- for block in section.blocks -%}
+        <div class="trusted-item" {{ block.shopify_attributes }}>
+          
+          <div class="trusted-icon-wrapper">
+            {%- if block.settings.custom_icon != blank -%}
+              <img
+                src="{{ block.settings.custom_icon | image_url: width: 100 }}"
+                alt="{{ block.settings.custom_icon.alt | escape }}"
+                width="40"
+                height="40"
+                loading="lazy"
+                class="trusted-custom-img"
+              >
+            {%- else -%}
+              <span class="trusted-svg-icon">
+                {%- case block.settings.icon -%}
+                  {%- when 'shipping' -%}
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 14"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+                  {%- when 'payment' -%}
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+                  {%- when 'return' -%}
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+                  {%- when 'support' -%}
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                  {%- when 'check' -%}
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                  {%- when 'leaf' -%}
+                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.77 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+                {%- endcase -%}
+              </span>
+            {%- endif -%}
+          </div>
+
+          <span class="trusted-text">{{ block.settings.text }}</span>
+        
+        </div>
+      {%- endfor -%}
+    </div>
+  </div>
+</div>
+
+<style>
   .section-{{ section.id }}-padding {
     padding-top: {{ section.settings.padding_top }}px;
     padding-bottom: {{ section.settings.padding_bottom }}px;
     background-color: {{ section.settings.bg_color }};
+    border-top: 1px solid #eee;
+    border-bottom: 1px solid #eee;
   }
 
-  .trust-bar-wrapper {
-    display: grid;
-    /* Automatische Spalten: Mindestens 250px breit, sonst umbrechen */
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
-    text-align: center;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 20px;
-  }
-
-  .trust-item {
+  .trusted-grid {
     display: flex;
-    flex-direction: column;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    align-items: center;
+  }
+
+  .trusted-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 20px;
+  }
+
+  .trusted-icon-wrapper {
+    display: flex;
     align-items: center;
     justify-content: center;
+    color: {{ section.settings.icon_color }};
+  }
+
+  /* SVG Styling */
+  .trusted-svg-icon svg {
+    width: 24px;
+    height: 24px;
+    display: block;
+  }
+
+  /* Custom Image Styling */
+  .trusted-custom-img {
+    width: 32px; /* Etwas größer als SVG damit es wirkt */
+    height: 32px;
+    object-fit: contain;
+    display: block;
+  }
+
+  .trusted-text {
+    font-size: 0.95rem;
+    font-weight: 500;
     color: {{ section.settings.text_color }};
   }
-
-  .trust-icon {
-    width: 40px;
-    height: 40px;
-    margin-bottom: 10px;
-    fill: currentColor; /* Erbt die Textfarbe */
+  
+  /* Mobile: Stack items vertically slightly better */
+  @media (max-width: 750px) {
+    .trusted-grid {
+      flex-direction: column;
+      gap: 10px;
+    }
+    .trusted-item {
+      width: 100%;
+      justify-content: center;
+    }
   }
-
-  .trust-text {
-    font-weight: bold;
-    font-size: 1rem;
-  }
-{%- endstyle -%}
-
-<div class="section-{{ section.id }}-padding">
-  <div class="trust-bar-wrapper">
-    {%- for block in section.blocks -%}
-      <div class="trust-item" {{ block.shopify_attributes }}>
-        
-        {%- if block.settings.custom_icon != blank -%}
-          <img src="{{ block.settings.custom_icon | image_url: width: 80 }}" 
-               loading="lazy" 
-               width="40" height="40" 
-               alt="{{ block.settings.text }}" 
-               class="trust-icon">
-        {%- else -%}
-          <svg class="trust-icon" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-            <path d="M10 0C4.48 0 0 4.48 0 10s4.48 10 10 10 10-4.48 10-10S15.52 0 10 0zm4.29 7.71l-5 5c-.18.18-.43.29-.71.29-.28 0-.53-.11-.71-.29l-2-2c-.39-.39-.39-1.02 0-1.41.39-.39 1.02-.39 1.41 0L9.58 11.59l4.29-4.29c.39-.39 1.02-.39 1.41 0 .39.39.39 1.02 0 1.41z"/>
-          </svg>
-        {%- endif -%}
-
-        <span class="trust-text">{{ block.settings.text }}</span>
-      </div>
-    {%- endfor -%}
-  </div>
-</div>
+</style>
 
 {% schema %}
 {
-  "name": "🏆 Trust Bar",
+  "name": "Trusted Bar",
   "settings": [
     {
       "type": "color",
       "id": "bg_color",
-      "label": "Hintergrundfarbe",
-      "default": "#f4f4f4"
+      "label": "Hintergrund",
+      "default": "#ffffff"
     },
     {
       "type": "color",
       "id": "text_color",
-      "label": "Text & Icon Farbe",
+      "label": "Textfarbe",
       "default": "#333333"
+    },
+    {
+      "type": "color",
+      "id": "icon_color",
+      "label": "Iconfarbe (nur für SVGs)",
+      "default": "#000000"
     },
     {
       "type": "range",
       "id": "padding_top",
       "min": 0,
-      "max": 100,
+      "max": 60,
       "step": 4,
       "unit": "px",
       "label": "Abstand oben",
-      "default": 36
+      "default": 16
     },
     {
       "type": "range",
       "id": "padding_bottom",
       "min": 0,
-      "max": 100,
+      "max": 60,
       "step": 4,
       "unit": "px",
       "label": "Abstand unten",
-      "default": 36
+      "default": 16
     }
   ],
   "blocks": [
     {
       "type": "usp",
-      "name": "Vorteil",
+      "name": "Vorteil (USP)",
       "settings": [
+        {
+          "type": "image_picker",
+          "id": "custom_icon",
+          "label": "Eigenes Icon hochladen (optional)",
+          "info": "Wenn leer, wird das Standard-Icon unten verwendet."
+        },
+        {
+          "type": "select",
+          "id": "icon",
+          "label": "Standard Icon",
+          "options": [
+            { "value": "shipping", "label": "Versand" },
+            { "value": "return", "label": "Retoure" },
+            { "value": "payment", "label": "Sichere Zahlung" },
+            { "value": "support", "label": "Support" },
+            { "value": "check", "label": "Haken" },
+            { "value": "leaf", "label": "Nachhaltig" }
+          ],
+          "default": "shipping"
+        },
         {
           "type": "text",
           "id": "text",
           "label": "Text",
           "default": "Kostenloser Versand"
-        },
-        {
-          "type": "image_picker",
-          "id": "custom_icon",
-          "label": "Eigenes Icon (PNG/SVG)"
         }
       ]
     }
   ],
   "presets": [
     {
-      "name": "🏆 Trust Bar",
+      "name": "Trusted Bar",
       "blocks": [
-        { "type": "usp", "settings": { "text": "Schneller Versand" } },
-        { "type": "usp", "settings": { "text": "Premium Qualität" } },
-        { "type": "usp", "settings": { "text": "24/7 Support" } }
+        { "type": "usp", "settings": { "icon": "shipping", "text": "Kostenloser Versand" } },
+        { "type": "usp", "settings": { "icon": "return", "text": "30 Tage Rückgabe" } },
+        { "type": "usp", "settings": { "icon": "support", "text": "24/7 Support" } }
       ]
     }
   ]
