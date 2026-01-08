@@ -1,107 +1,224 @@
-<div class="featured-collection-wrapper section-{{ section.id }}-padding">
+{% comment %}
+  Lean Feature Products (FIXED)
+  Features: Drag & Drop, Hybrid Logic, Custom Alignment, Bold Options.
+  Self-contained: No external snippets required.
+{% endcomment %}
+
+<div class="section-featured-products section-{{ section.id }}-padding">
   <div class="page-width">
+    
     {%- if section.settings.heading != blank -%}
-      <h2 class="featured-heading">{{ section.settings.heading }}</h2>
+      <div class="collection-heading" style="text-align: {{ section.settings.heading_align }};">
+        <h2>{{ section.settings.heading }}</h2>
+      </div>
     {%- endif -%}
 
-    <div class="product-grid-container">
-      {%- assign limit = section.settings.products_to_show -%}
+    <div class="product-grid">
       
-      {%- for product in section.settings.collection.products limit: limit -%}
-        <div class="grid-item">
-          {% render 'product-card', card_product: product %}
-        </div>
+      {% comment %} --- LOGIK: ENTWEDER BLÖCKE ODER COLLECTION --- {% endcomment %}
+      
+      {%- if section.blocks.size > 0 -%}
+        {%- for block in section.blocks -%}
+          {%- assign product = block.settings.product -%}
+          {%- if product != blank -%}
+            
+            <a href="{{ product.url }}" class="product-card" {{ block.shopify_attributes }}>
+              <div class="card-media">
+                <img
+                  src="{{ product.featured_image | image_url: width: 800 }}"
+                  alt="{{ product.featured_image.alt | escape }}"
+                  width="{{ product.featured_image.width }}"
+                  height="{{ product.featured_image.height }}"
+                  loading="lazy"
+                  class="card-img"
+                >
+                {%- if product.compare_at_price > product.price -%}
+                  <span class="badge-sale">Sale</span>
+                {%- endif -%}
+              </div>
+              <div class="card-info align-{{ section.settings.info_align }}">
+                <h3 class="card-title {% if section.settings.bold_title %}font-bold{% endif %}">
+                  {{ product.title }}
+                </h3>
+                <div class="card-price {% if section.settings.bold_price %}font-bold{% endif %}">
+                  {%- if product.compare_at_price > product.price -%}
+                    <span class="price-compare">{{ product.compare_at_price | money }}</span>
+                  {%- endif -%}
+                  <span class="price-final">{{ product.price | money }}</span>
+                </div>
+              </div>
+            </a>
+
+          {%- else -%}
+            <div class="product-card" {{ block.shopify_attributes }}>
+              <div class="card-media">
+                {{ 'product-1' | placeholder_svg_tag: 'card-img placeholder' }}
+              </div>
+              <div class="card-info align-{{ section.settings.info_align }}">
+                <h3 class="card-title">Produkt wählen</h3>
+                <span class="card-price">--</span>
+              </div>
+            </div>
+          {%- endif -%}
+        {%- endfor -%}
+
+      {%- elsif section.settings.collection != blank -%}
+        {%- assign limit = section.settings.products_to_show -%}
+        {%- for product in section.settings.collection.products limit: limit -%}
+          
+          <a href="{{ product.url }}" class="product-card">
+            <div class="card-media">
+              <img
+                src="{{ product.featured_image | image_url: width: 800 }}"
+                alt="{{ product.featured_image.alt | escape }}"
+                width="{{ product.featured_image.width }}"
+                height="{{ product.featured_image.height }}"
+                loading="lazy"
+                class="card-img"
+              >
+              {%- if product.compare_at_price > product.price -%}
+                <span class="badge-sale">Sale</span>
+              {%- endif -%}
+            </div>
+            <div class="card-info align-{{ section.settings.info_align }}">
+              <h3 class="card-title {% if section.settings.bold_title %}font-bold{% endif %}">
+                {{ product.title }}
+              </h3>
+              <div class="card-price {% if section.settings.bold_price %}font-bold{% endif %}">
+                {%- if product.compare_at_price > product.price -%}
+                  <span class="price-compare">{{ product.compare_at_price | money }}</span>
+                {%- endif -%}
+                <span class="price-final">{{ product.price | money }}</span>
+              </div>
+            </div>
+          </a>
+
+        {%- endfor -%}
+
       {%- else -%}
         {%- for i in (1..4) -%}
-          <div class="grid-item">
-            <div class="product-card">
-              <div class="card-image-wrapper">
-                 {{ 'product-' | append: i | placeholder_svg_tag }}
-              </div>
-              <div class="card-info">
-                <h3>Beispiel Produkt {{ i }}</h3>
-                <span>19,99 €</span>
-              </div>
+          <div class="product-card">
+            <div class="card-media">
+              {{ 'product-' | append: i | placeholder_svg_tag: 'card-img placeholder' }}
+            </div>
+            <div class="card-info align-{{ section.settings.info_align }}">
+              <h3 class="card-title">Beispiel Produkt</h3>
+              <span class="card-price">€99,00</span>
             </div>
           </div>
         {%- endfor -%}
-      {%- endfor -%}
+      {%- endif -%}
+
     </div>
   </div>
 </div>
 
 <style>
-  /* Lokales CSS für maximale Stabilität */
   .section-{{ section.id }}-padding {
     padding-top: {{ section.settings.padding_top }}px;
     padding-bottom: {{ section.settings.padding_bottom }}px;
-    background-color: #fff; /* Sicherstellen, dass Hintergrund weiß ist */
   }
 
-  .page-width {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 20px;
-    width: 100%;
-    box-sizing: border-box;
-  }
+  .collection-heading { margin-bottom: 40px; }
+  .collection-heading h2 { font-size: 2rem; margin: 0; font-weight: 500; }
 
-  .featured-heading {
-    text-align: center;
-    margin-bottom: 40px;
-    font-size: 2rem;
-  }
-
-  .product-grid-container {
+  /* GRID */
+  .product-grid {
     display: grid;
-    grid-template-columns: repeat({{ section.settings.columns_mobile }}, 1fr);
-    gap: {{ section.settings.column_gap }}px;
-    width: 100%;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px 15px;
   }
 
-  @media (min-width: 768px) {
-    .product-grid-container {
+  @media (min-width: 750px) {
+    .product-grid {
       grid-template-columns: repeat({{ section.settings.columns_desktop }}, 1fr);
+      gap: 40px 30px;
     }
   }
 
-  /* WICHTIG: Stellt sicher, dass die Bilder das Layout nicht sprengen */
-  .grid-item .card-image-wrapper {
+  /* CARD */
+  .product-card { text-decoration: none; color: inherit; display: block; position: relative; }
+  
+  .card-media {
     position: relative;
     overflow: hidden;
-    padding-top: 100%; /* Sorgt für ein quadratisches Seitenverhältnis */
-    background-color: #f5f5f5;
+    margin-bottom: 12px;
+    background: #f4f4f4;
+    border-radius: 4px;
   }
 
-  .grid-item .card-image {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover; /* Stellt sicher, dass das Bild den Raum füllt, ohne sich zu verzerren */
+  .card-img {
+    width: 100%; height: auto; aspect-ratio: 1/1; object-fit: cover;
+    transition: transform 0.6s ease; display: block;
   }
-  
-  /* Schutz gegen kaputtes Layout: Items müssen sichtbar sein */
-  .grid-item {
-    min-width: 0; /* WICHTIG für CSS Grid, verhindert Overflow */
+  .product-card:hover .card-img { transform: scale(1.03); }
+
+  .badge-sale {
+    position: absolute; top: 10px; left: 10px;
+    background: #000; color: #fff; font-size: 0.7rem;
+    padding: 3px 6px; text-transform: uppercase; font-weight: 700;
+  }
+
+  /* ALIGNMENT LOGIC */
+  .card-info { display: flex; font-size: 1rem; line-height: 1.4; gap: 5px; }
+
+  /* 1. Split (Links Name, Rechts Preis) */
+  .align-split { justify-content: space-between; text-align: left; flex-direction: row; }
+  .align-split .card-price { text-align: right; white-space: nowrap; }
+
+  /* 2. Stacked Left */
+  .align-left { flex-direction: column; text-align: left; align-items: flex-start; }
+
+  /* 3. Stacked Center */
+  .align-center { flex-direction: column; text-align: center; align-items: center; }
+
+  /* 4. Stacked Right */
+  .align-right { flex-direction: column; text-align: right; align-items: flex-end; }
+
+  /* TYPOGRAPHY */
+  .card-title { margin: 0; font-size: 1rem; font-weight: 400; }
+  .card-price { font-weight: 400; color: #111; }
+
+  .font-bold { font-weight: 700 !important; }
+
+  .price-compare {
+    text-decoration: line-through; color: #888;
+    font-size: 0.9em; margin-right: 5px; font-weight: 400;
   }
 </style>
 
 {% schema %}
 {
-  "name": "🔥 Featured Collection",
+  "name": "Feature Products",
   "settings": [
     {
       "type": "text",
       "id": "heading",
       "label": "Überschrift",
-      "default": "Unsere Bestseller"
+      "default": "Ausgewählte Produkte"
+    },
+    {
+      "type": "select",
+      "id": "heading_align",
+      "label": "Überschrift Ausrichtung",
+      "options": [
+        { "value": "left", "label": "Links" },
+        { "value": "center", "label": "Zentriert" }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "header",
+      "content": "Inhalt"
+    },
+    {
+      "type": "paragraph",
+      "content": "Nutze 'Einzelne Produkte' (Blöcke) für Drag & Drop. Wenn keine Blöcke da sind, wird die Kategorie verwendet:"
     },
     {
       "type": "collection",
       "id": "collection",
-      "label": "Kategorie wählen"
+      "label": "Standard Kategorie"
     },
     {
       "type": "range",
@@ -110,46 +227,44 @@
       "max": 12,
       "step": 1,
       "default": 4,
-      "label": "Anzahl Produkte"
+      "label": "Anzahl (nur für Kategorie)"
     },
     {
       "type": "header",
-      "content": "Layout"
+      "content": "Design & Text"
+    },
+    {
+      "type": "select",
+      "id": "info_align",
+      "label": "Text & Preis Ausrichtung",
+      "options": [
+        { "value": "split", "label": "Split (Links/Rechts)" },
+        { "value": "left", "label": "Links (untereinander)" },
+        { "value": "center", "label": "Zentriert (untereinander)" },
+        { "value": "right", "label": "Rechts (untereinander)" }
+      ],
+      "default": "split"
+    },
+    {
+      "type": "checkbox",
+      "id": "bold_title",
+      "label": "Produktname fett",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "bold_price",
+      "label": "Preis fett",
+      "default": true
     },
     {
       "type": "range",
-      "id": "column_gap",
-      "label": "Spaltenabstand",
-      "min": 10,
-      "max": 40,
-      "step": 5,
-      "unit": "px",
-      "default": 20
-    },
-    {
-      "type": "select",
       "id": "columns_desktop",
-      "label": "Spalten am Desktop",
-      "options": [
-        { "value": "2", "label": "2" },
-        { "value": "3", "label": "3" },
-        { "value": "4", "label": "4" }
-      ],
-      "default": "4"
-    },
-    {
-      "type": "select",
-      "id": "columns_mobile",
-      "label": "Spalten auf Mobilgeräten",
-      "options": [
-        { "value": "1", "label": "1" },
-        { "value": "2", "label": "2" }
-      ],
-      "default": "2"
-    },
-    {
-      "type": "header",
-      "content": "Abstände"
+      "min": 2,
+      "max": 5,
+      "step": 1,
+      "default": 4,
+      "label": "Spalten (Desktop)"
     },
     {
       "type": "range",
@@ -172,10 +287,5 @@
       "default": 60
     }
   ],
-  "presets": [
+  "blocks": [
     {
-      "name": "🔥 Featured Collection"
-    }
-  ]
-}
-{% endschema %}

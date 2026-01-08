@@ -1,9 +1,9 @@
 {% comment %}
   Lean Image with Text
-  Features: Flexible Layout, Color Schemes, Custom Border Radius
+  Features: Custom Color Picker ONLY (No Presets), Flexible Layout, Border Radius
 {% endcomment %}
 
-<div class="section-image-text section-{{ section.id }}-padding color-{{ section.settings.color_scheme }}">
+<div class="section-image-text section-{{ section.id }}-padding">
   <div class="page-width">
     <div class="image-text-grid {% if section.settings.layout == 'right' %}layout-reverse{% endif %}">
       
@@ -51,22 +51,38 @@
 </div>
 
 <style>
+  /* BASIS STYLE (Standard: Weiß/Schwarz) */
+  .section-image-text {
+    background-color: #ffffff;
+    color: #000000;
+  }
+
   .section-{{ section.id }}-padding {
     padding-top: {{ section.settings.padding_top }}px;
     padding-bottom: {{ section.settings.padding_bottom }}px;
+    
+    /* OVERRIDE: Wenn Custom Farbe gewählt */
+    {% if section.settings.custom_bg_color != blank and section.settings.custom_bg_color != 'rgba(0,0,0,0)' %}
+      background-color: {{ section.settings.custom_bg_color }} !important;
+    {% endif %}
   }
 
-  /* Dynamischer Radius vom Kunden */
+  /* Textfarben-Override */
+  {% if section.settings.custom_text_color != blank and section.settings.custom_text_color != 'rgba(0,0,0,0)' %}
+    .section-{{ section.id }}-padding,
+    .section-{{ section.id }}-padding .heading,
+    .section-{{ section.id }}-padding .body-text,
+    .section-{{ section.id }}-padding .subheading {
+      color: {{ section.settings.custom_text_color }} !important;
+    }
+  {% endif %}
+
+  /* Dynamischer Radius */
   .media-wrapper {
     border-radius: {{ section.settings.corner_radius }}px; 
     overflow: hidden;
     box-shadow: 0 4px 20px rgba(0,0,0,0.08);
   }
-
-  /* Farbschemata */
-  .color-background-1 { background-color: #ffffff; color: #000000; }
-  .color-background-2 { background-color: #f7f7f7; color: #000000; }
-  .color-inverse { background-color: #1a1a1a; color: #ffffff; }
 
   /* Grid Layout */
   .image-text-grid {
@@ -81,14 +97,8 @@
       grid-template-columns: 1fr 1fr;
       gap: 60px;
     }
-    
-    /* Bild Rechts Logik */
-    .layout-reverse {
-      direction: rtl; 
-    }
-    .layout-reverse > * {
-      direction: ltr; 
-    }
+    .layout-reverse { direction: rtl; }
+    .layout-reverse > * { direction: ltr; }
   }
 
   .image-text-img {
@@ -99,9 +109,7 @@
     aspect-ratio: 4/3; 
   }
 
-  .content-wrapper {
-    padding: 20px 0;
-  }
+  .content-wrapper { padding: 20px 0; }
 
   .subheading {
     text-transform: uppercase;
@@ -150,19 +158,24 @@
       "default": "left"
     },
     {
-      "type": "select",
-      "id": "color_scheme",
-      "label": "Hintergrund Farbe",
-      "options": [
-        { "value": "background-1", "label": "Weiß" },
-        { "value": "background-2", "label": "Hellgrau" },
-        { "value": "inverse", "label": "Dunkel (Invertiert)" }
-      ],
-      "default": "background-1"
+      "type": "header",
+      "content": "Design & Farben"
     },
     {
-      "type": "header",
-      "content": "Design"
+      "type": "paragraph",
+      "content": "Wähle deine Farben. Standard ist Weiß."
+    },
+    {
+      "type": "color",
+      "id": "custom_bg_color",
+      "label": "Hintergrundfarbe",
+      "default": "transparent"
+    },
+    {
+      "type": "color",
+      "id": "custom_text_color",
+      "label": "Textfarbe",
+      "default": "transparent"
     },
     {
       "type": "range",
@@ -172,8 +185,7 @@
       "step": 2,
       "unit": "px",
       "label": "Ecken abrunden",
-      "default": 0,
-      "info": "0px = Eckig, 40px = Rund"
+      "default": 12
     },
     {
       "type": "header",
@@ -195,7 +207,7 @@
       "type": "richtext",
       "id": "text",
       "label": "Text",
-      "default": "<p>Beschreibe hier deine Marke, deine Produktion oder die Vorteile deines Produkts.</p>"
+      "default": "<p>Beschreibe hier deine Marke.</p>"
     },
     {
       "type": "text",
