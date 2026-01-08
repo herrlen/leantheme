@@ -1,0 +1,176 @@
+{% comment %} 
+  Featured Collection Section 
+  Zeigt eine ausgewählte Kategorie auf der Startseite an.
+{% endcomment %}
+
+<div class="featured-collection section-{{ section.id }}-padding">
+  <div class="page-width">
+    
+    {%- if section.settings.title != blank -%}
+      <h2 class="section-heading">{{ section.settings.title | escape }}</h2>
+    {%- endif -%}
+
+    <div class="product-grid">
+      {%- assign collection = collections[section.settings.collection] -%}
+      
+      {%- if collection != blank -%}
+        {%- for product in collection.products limit: section.settings.products_to_show -%}
+          <a href="{{ product.url }}" class="product-card">
+            <div class="card-media">
+              <img src="{{ product.featured_image | img_url: '600x' }}" 
+                   alt="{{ product.featured_image.alt | escape }}" 
+                   width="600" height="600"
+                   loading="lazy" 
+                   style="width: 100%; height: 100%; object-fit: cover;">
+            </div>
+            <div class="card-info">
+              <h3 class="card-title">{{ product.title }}</h3>
+              <div class="card-price">
+                {% if product.compare_at_price > product.price %}
+                  <span class="compare">{{ product.compare_at_price | money }}</span>
+                {% endif %}
+                <span>{{ product.price | money }}</span>
+              </div>
+            </div>
+          </a>
+        {%- endfor -%}
+      {%- else -%}
+        {%- for i in (1..4) -%}
+          <div class="product-card">
+            <div class="card-media placeholder-media">
+              {{ 'product-' | append: i | placeholder_svg_tag: 'placeholder-svg' }}
+            </div>
+            <div class="card-info">
+              <h3 class="card-title">Beispiel Produkt</h3>
+              <div class="card-price">19,99 €</div>
+            </div>
+          </div>
+        {%- endfor -%}
+      {%- endif -%}
+    </div>
+
+    {%- if section.settings.show_view_all and collection != blank -%}
+      <div class="view-all-wrapper">
+        <a href="{{ collection.url }}" class="button-outline">
+          Alle anzeigen
+        </a>
+      </div>
+    {%- endif -%}
+
+  </div>
+</div>
+
+<style>
+  .section-{{ section.id }}-padding {
+    padding-top: {{ section.settings.padding_top }}px;
+    padding-bottom: {{ section.settings.padding_bottom }}px;
+  }
+  .page-width {
+    margin: 0 auto; max-width: 1200px;
+    padding-left: clamp(20px, {{ section.settings.padding_side }}px, 10vw);
+    padding-right: clamp(20px, {{ section.settings.padding_side }}px, 10vw);
+  }
+
+  .section-heading { font-size: 2rem; margin-bottom: 30px; text-align: center; }
+
+  /* Grid Layout (Gleiches Design wie auf der Kategorieseite) */
+  .product-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px 15px;
+  }
+  @media(min-width: 750px) {
+    .product-grid { grid-template-columns: repeat({{ section.settings.columns_desktop }}, 1fr); gap: 40px 30px; }
+  }
+
+  /* Card Styles */
+  .product-card { text-decoration: none; color: inherit; display: block; }
+  .card-media { 
+    position: relative; width: 100%; aspect-ratio: 1/1; overflow: hidden; 
+    border-radius: 4px; background: #f4f4f4; 
+  }
+  .card-media img { display: block; transition: transform 0.3s; }
+  .product-card:hover .card-media img { transform: scale(1.02); }
+
+  .card-info { margin-top: 10px; display: flex; justify-content: space-between; font-size: 1rem; }
+  .card-price { font-weight: bold; white-space: nowrap; margin-left: 10px; }
+  .compare { text-decoration: line-through; opacity: 0.5; margin-right: 5px; font-weight: normal; }
+
+  /* Placeholder */
+  .placeholder-media { display: flex; align-items: center; justify-content: center; background: #eee; }
+  .placeholder-svg { width: 50%; height: 50%; opacity: 0.5; }
+
+  /* Button "Alle anzeigen" */
+  .view-all-wrapper { text-align: center; margin-top: 40px; }
+  .button-outline { 
+    display: inline-block; padding: 10px 25px; border: 1px solid #000; 
+    text-decoration: none; color: #000; border-radius: 4px; transition: all 0.3s;
+  }
+  .button-outline:hover { background: #000; color: #fff; }
+
+</style>
+
+{% schema %}
+{
+  "name": "Kategorie Vorschau",
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Überschrift",
+      "default": "Bestseller"
+    },
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Kategorie auswählen"
+    },
+    {
+      "type": "range",
+      "id": "products_to_show",
+      "min": 2,
+      "max": 12,
+      "step": 1,
+      "default": 4,
+      "label": "Anzahl Produkte"
+    },
+    {
+      "type": "range",
+      "id": "columns_desktop",
+      "min": 2,
+      "max": 5,
+      "step": 1,
+      "default": 4,
+      "label": "Spalten (Desktop)"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_view_all",
+      "default": true,
+      "label": "Button 'Alle anzeigen' zeigen"
+    },
+    {
+      "type": "header",
+      "content": "Abstände"
+    },
+    {
+      "type": "range",
+      "id": "padding_side",
+      "min": 20, "max": 200, "step": 10, "default": 20, "label": "Seitlicher Abstand"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0, "max": 100, "step": 4, "default": 60, "label": "Abstand oben"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0, "max": 100, "step": 4, "default": 60, "label": "Abstand unten"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Kategorie Vorschau"
+    }
+  ]
+}
+{% endschema %}
