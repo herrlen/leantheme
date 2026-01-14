@@ -1,329 +1,117 @@
 {% comment %}
-  Advanced Header
-  Features: Flexible Layouts (Logo Center/Left), Transparent Mode, Predictive Search
+  Lean Header - Final Version with Mobile Menu
 {% endcomment %}
 
-<header class="header-section {% if section.settings.enable_transparent %}header-transparent{% endif %}">
-  <div class="page-width">
+<header 
+  id="site-header"
+  class="site-header {% if section.settings.enable_transparent_header and request.page_type == 'index' %}is-transparent{% endif %}"
+  data-transparent="{{ section.settings.enable_transparent_header }}"
+>
+  
+  <div class="header__left">
     
-    <div class="header-grid layout-{{ section.settings.logo_position }}">
-      
-      <nav class="header-nav {% if section.settings.menu_type == 'drawer' %}hidden-desktop{% endif %}">
-        <ul class="nav-list">
-          {%- for link in section.settings.menu.links -%}
-            <li>
-              <a href="{{ link.url }}" class="nav-link {% if link.active %}nav-link--active{% endif %}">
-                {{ link.title }}
-              </a>
-            </li>
-          {%- endfor -%}
-        </ul>
-      </nav>
+    <button type="button" class="header__hamburger" id="mobile-menu-trigger" aria-label="Menü öffnen">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+    </button>
 
-      <div class="header-drawer-trigger">
-        <details>
-          <summary class="icon-button">
-            <span class="hamburger-icon">☰</span>
-          </summary>
-          <div class="mobile-drawer-content">
-             <ul class="mobile-nav-list">
-               {%- for link in section.settings.menu.links -%}
-                 <li><a href="{{ link.url }}">{{ link.title }}</a></li>
-               {%- endfor -%}
-             </ul>
-          </div>
-        </details>
-      </div>
+    <a href="{{ routes.root_url }}" class="header__logo">
+      {{ shop.name }}
+    </a>
+  </div>
 
-      <div class="header-logo">
-        <a href="{{ routes.root_url }}" class="logo-link">
-          {%- if section.settings.logo != blank -%}
-            <img src="{{ section.settings.logo | image_url: width: section.settings.logo_width }}"
-                 alt="{{ shop.name }}"
-                 width="{{ section.settings.logo_width }}"
-                 height="{{ section.settings.logo_width | divided_by: section.settings.logo.aspect_ratio | ceil }}"
-                 loading="eager">
-          {%- else -%}
-            <span class="logo-text">{{ shop.name }}</span>
-          {%- endif -%}
-        </a>
-      </div>
+  <nav class="header__center">
+    <ul class="header__menu-list">
+      {%- for link in section.settings.menu.links -%}
+        <li>
+          <a href="{{ link.url }}" class="header__menu-link">
+            {{ link.title }}
+          </a>
+        </li>
+      {%- endfor -%}
+    </ul>
+  </nav>
 
-      <div class="header-icons">
-        
-        <predictive-search class="search-component">
-          <form action="{{ routes.search_url }}" method="get" role="search" class="search-form">
-            <input
-              id="Search-In-Modal"
-              type="search"
-              name="q"
-              value=""
-              placeholder="Suche..."
-              role="combobox"
-              aria-expanded="false"
-              aria-owns="predictive-search-results"
-              aria-controls="predictive-search-results"
-              aria-haspopup="listbox"
-              class="search-input"
-            >
-            <input name="options[prefix]" type="hidden" value="last">
-            <div id="predictive-search" tabindex="-1"></div>
-          </form>
-        </predictive-search>
+  <div class="header__right">
+    {%- if shop.customer_accounts_enabled -%}
+      <a href="{{ routes.account_url }}" class="header__icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+      </a>
+    {%- endif -%}
 
-        <a href="{{ routes.cart_url }}" class="icon-button cart-icon">
-          Warenkorb ({{ cart.item_count }})
-        </a>
-      </div>
-
-    </div>
+    <a href="{{ routes.cart_url }}" class="header__icon cart-icon-wrapper">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+      {%- if cart.item_count > 0 -%}
+        <span class="cart-count">{{ cart.item_count }}</span>
+      {%- endif -%}
+    </a>
   </div>
 </header>
 
+<div class="mobile-drawer" id="mobile-drawer">
+  <div class="drawer-header">
+    <span class="drawer-title">Menü</span>
+    <button type="button" class="drawer-close" id="mobile-menu-close">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+    </button>
+  </div>
+  
+  <ul class="drawer-menu-list">
+    {%- for link in section.settings.menu.links -%}
+      <li>
+        <a href="{{ link.url }}" class="drawer-link">
+          {{ link.title }}
+        </a>
+      </li>
+    {%- endfor -%}
+  </ul>
+</div>
+
+<div class="mobile-overlay" id="mobile-overlay"></div>
+
+
 <script>
-  class PredictiveSearch extends HTMLElement {
-    constructor() {
-      super();
-      this.input = this.querySelector('input[type="search"]');
-      this.predictiveSearchResults = this.querySelector('#predictive-search');
-      this.input.addEventListener('input', this.debounce((event) => {
-        this.onChange(event);
-      }, 300).bind(this));
+  document.addEventListener('DOMContentLoaded', function() {
+    // 1. Sticky Header Logic
+    const header = document.getElementById('site-header');
+    function handleScroll() {
+      if (window.scrollY > 10) header.classList.add('is-scrolled');
+      else header.classList.remove('is-scrolled');
+    }
+    window.addEventListener('scroll', handleScroll);
+
+    // 2. Mobile Menu Logic
+    const trigger = document.getElementById('mobile-menu-trigger');
+    const closeBtn = document.getElementById('mobile-menu-close');
+    const drawer = document.getElementById('mobile-drawer');
+    const overlay = document.getElementById('mobile-overlay');
+
+    function toggleMenu() {
+      drawer.classList.toggle('is-open');
+      overlay.classList.toggle('is-open');
+      document.body.classList.toggle('no-scroll'); // Verhindert Scrollen im Hintergrund
     }
 
-    onChange() {
-      const searchTerm = this.input.value.trim();
-      if (!searchTerm.length) {
-        this.close();
-        return;
-      }
-      this.getSearchResults(searchTerm);
-    }
-
-    getSearchResults(searchTerm) {
-      fetch(`/search/suggest?q=${searchTerm}&section_id=predictive-search`)
-        .then((response) => {
-          if (!response.ok) {
-            var error = new Error(response.statusText);
-            error.code = response.status;
-            throw error;
-          }
-          return response.text();
-        })
-        .then((text) => {
-          const resultsMarkup = new DOMParser().parseFromString(text, 'text/html').querySelector('#shopify-section-predictive-search').innerHTML;
-          this.predictiveSearchResults.innerHTML = resultsMarkup;
-          this.open();
-        })
-        .catch((error) => {
-          this.close();
-          throw error;
-        });
-    }
-
-    open() {
-      this.predictiveSearchResults.style.display = 'block';
-    }
-
-    close() {
-      this.predictiveSearchResults.style.display = 'none';
-      this.predictiveSearchResults.innerHTML = '';
-    }
-
-    debounce(fn, wait) {
-      let t;
-      return (...args) => {
-        clearTimeout(t);
-        t = setTimeout(() => fn.apply(this, args), wait);
-      };
-    }
-  }
-  customElements.define('predictive-search', PredictiveSearch);
+    if (trigger) trigger.addEventListener('click', toggleMenu);
+    if (closeBtn) closeBtn.addEventListener('click', toggleMenu);
+    if (overlay) overlay.addEventListener('click', toggleMenu);
+  });
 </script>
-
-<style>
-  /* BASIS HEADER */
-  .header-section {
-    background: #ffffff;
-    border-bottom: 1px solid #eee;
-    padding: 20px 0;
-    position: relative;
-    z-index: 10;
-    transition: background 0.3s;
-  }
-  
-  /* TRANSPARENT MODE */
-  .header-transparent {
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    background: transparent;
-    border-bottom: none;
-  }
-  .header-transparent .nav-link, 
-  .header-transparent .logo-text,
-  .header-transparent .icon-button,
-  .header-transparent .cart-icon {
-    color: #fff; /* Weisse Schrift auf transparent */
-  }
-
-  .page-width { max-width: 1400px; margin: 0 auto; padding: 0 20px; }
-
-  /* GRID SYSTEM FÜR LAYOUTS */
-  .header-grid {
-    display: grid;
-    align-items: center;
-    gap: 20px;
-  }
-
-  /* LAYOUT 1: Logo Links - Menu Mitte - Icons Rechts */
-  .layout-logo_left_menu_center {
-    grid-template-columns: auto 1fr auto;
-  }
-  .layout-logo_left_menu_center .header-nav { text-align: center; }
-  .layout-logo_left_menu_center .header-drawer-trigger { display: none; }
-
-  /* LAYOUT 2: Logo Mitte - Menu Links (Hamburger/Drawer) - Icons Rechts */
-  .layout-logo_center_menu_left {
-    grid-template-columns: 1fr auto 1fr;
-  }
-  .layout-logo_center_menu_left .header-logo { text-align: center; }
-  .layout-logo_center_menu_left .header-nav { display: none; } /* Desktop Menu ausblenden */
-  .layout-logo_center_menu_left .header-drawer-trigger { display: block; }
-  .layout-logo_center_menu_left .header-icons { justify-self: end; }
-
-  /* LAYOUT 3: Logo Links - Menu Links - Icons Rechts */
-  .layout-logo_left_menu_left {
-    grid-template-columns: auto auto 1fr;
-  }
-  .layout-logo_left_menu_left .header-icons { justify-self: end; }
-  .layout-logo_left_menu_left .header-drawer-trigger { display: none; }
-
-
-  /* NAVIGATION STYLE */
-  .nav-list { list-style: none; padding: 0; margin: 0; display: inline-flex; gap: 30px; }
-  .nav-link { text-decoration: none; color: #000; font-weight: 500; font-size: 1rem; text-transform: uppercase; letter-spacing: 0.05em; }
-  .nav-link:hover { opacity: 0.7; }
-
-  /* LOGO */
-  .logo-text { font-size: 1.5rem; font-weight: 800; text-transform: uppercase; color: #000; }
-  .header-logo img { display: block; }
-
-  /* ICONS & SEARCH */
-  .header-icons { display: flex; gap: 20px; align-items: center; }
-  .cart-icon { text-decoration: none; color: #000; font-weight: bold; font-size: 0.9rem; }
-  
-  /* SEARCH INPUT */
-  .search-component { position: relative; }
-  .search-input {
-    border: 1px solid #ddd; padding: 8px 12px; border-radius: 4px;
-    font-size: 0.9rem; width: 150px; transition: width 0.3s;
-  }
-  .search-input:focus { width: 250px; outline: none; border-color: #000; }
-  
-  /* PREDICTIVE SEARCH RESULTS DROPDOWN */
-  #predictive-search {
-    display: none;
-    position: absolute;
-    top: 100%; right: 0;
-    width: 350px;
-    background: #fff;
-    border: 1px solid #eee;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-    border-radius: 4px;
-    z-index: 20;
-    margin-top: 10px;
-    max-height: 400px;
-    overflow-y: auto;
-  }
-  .predictive-search-heading { padding: 15px; margin: 0; font-size: 0.8rem; text-transform: uppercase; color: #888; border-bottom: 1px solid #f4f4f4; }
-  .predictive-search-list { list-style: none; margin: 0; padding: 0; }
-  .predictive-search-item { border-bottom: 1px solid #f4f4f4; }
-  .predictive-search-link { display: flex; gap: 15px; padding: 15px; text-decoration: none; color: #000; align-items: center; }
-  .predictive-search-link:hover { background: #f9f9f9; }
-  .predictive-search-image { border-radius: 4px; border: 1px solid #eee; }
-  .predictive-search-info { display: flex; flex-direction: column; }
-  .predictive-search-title { font-weight: 600; font-size: 0.95rem; }
-  .predictive-search-price { font-size: 0.9rem; color: #666; margin-top: 4px; }
-  .predictive-search-empty { padding: 20px; text-align: center; color: #666; }
-  .predictive-search-footer { padding: 10px; text-align: center; }
-  .button-small { font-size: 0.8rem; padding: 8px 15px; background: #000; color: #fff; border:none; cursor: pointer; border-radius: 3px; }
-
-  /* MOBILE DRAWER (Sehr Basic) */
-  .header-drawer-trigger { display: none; } /* Standardmäßig aus */
-  .hamburger-icon { font-size: 1.5rem; cursor: pointer; }
-  .mobile-drawer-content { 
-    position: absolute; top: 100%; left: 0; width: 100%; background: #fff; border-bottom: 1px solid #eee; padding: 20px; 
-    display: none; /* Nur sichtbar wenn details offen */
-  }
-  details[open] .mobile-drawer-content { display: block; }
-  .mobile-nav-list { list-style: none; padding: 0; }
-  .mobile-nav-list li { margin-bottom: 15px; }
-  .mobile-nav-list a { text-decoration: none; color: #000; font-size: 1.2rem; }
-
-  /* RESPONSIVE */
-  @media(max-width: 900px) {
-    /* Mobil immer Burger Menu */
-    .header-nav { display: none !important; } 
-    .header-drawer-trigger { display: block !important; }
-    .header-grid { grid-template-columns: auto 1fr auto !important; }
-    .header-logo { text-align: center; }
-  }
-
-</style>
 
 {% schema %}
 {
   "name": "Header",
   "settings": [
     {
-      "type": "header",
-      "content": "Layout & Design"
-    },
-    {
-      "type": "select",
-      "id": "logo_position",
-      "label": "Desktop Layout",
-      "options": [
-        { "value": "logo_left_menu_center", "label": "Logo Links / Menü Mitte" },
-        { "value": "logo_left_menu_left", "label": "Logo Links / Menü Links" },
-        { "value": "logo_center_menu_left", "label": "Logo Mitte / Burger Menü" }
-      ],
-      "default": "logo_left_menu_center"
-    },
-    {
       "type": "checkbox",
-      "id": "enable_transparent",
-      "label": "Transparenter Hintergrund (für Startseite)",
-      "default": false
+      "id": "enable_transparent_header",
+      "default": true,
+      "label": "Transparenter Header (Startseite)"
     },
     {
-      "type": "header",
-      "content": "Logo"
-    },
-    {
-      "type": "image_picker",
-      "id": "logo",
-      "label": "Logo Bild"
-    },
-    {
-      "type": "range",
-      "id": "logo_width",
-      "min": 50,
-      "max": 300,
-      "step": 10,
-      "default": 150,
-      "unit": "px",
-      "label": "Logo Breite"
-    },
-    {
-      "type": "header",
-      "content": "Navigation"
-    },
-    {
-      "type": "link_list",
-      "id": "menu",
-      "label": "Menü",
-      "default": "main-menu"
+       "type": "link_list",
+       "id": "menu",
+       "label": "Menü",
+       "default": "main-menu"
     }
   ]
 }
