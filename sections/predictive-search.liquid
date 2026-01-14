@@ -1,0 +1,41 @@
+{% comment %}
+  Updated Predictive Search Results
+  Uses CSS class 'search-results-btn' to match Header Settings
+{% endcomment %}
+
+{%- if predictive_search.performed -%}
+  <div id="predictive-search-results">
+    {%- if predictive_search.resources.products.size > 0 -%} 
+      <h3 class="predictive-search-heading">Produkte</h3>
+      <ul class="predictive-search-list" role="listbox">
+        {%- for product in predictive_search.resources.products -%}
+          <li class="predictive-search-item" role="option">
+            <a href="{{ product.url }}" class="predictive-search-link">
+              {%- if product.featured_media != blank -%}
+                <img class="predictive-search-image"
+                  src="{{ product.featured_media | image_url: width: 150 }}"
+                  alt="{{ product.featured_media.alt }}"
+                  width="50"
+                  height="50"
+                >
+              {%- endif -%}
+              <div class="predictive-search-info">
+                <span class="predictive-search-title">{{ product.title }}</span> 
+                <span class="predictive-search-price">{{ product.price | money }}</span> 
+              </div>
+            </a>
+          </li>
+        {%- endfor -%}
+      </ul>
+      <div class="predictive-search-footer">
+        <button class="search-results-btn">
+          Alle Ergebnisse für "{{ predictive_search.terms }}"
+        </button>
+      </div>
+    {%- else -%}
+      <div class="predictive-search-empty">
+        <p>Keine Ergebnisse gefunden für "{{ predictive_search.terms }}".</p>
+      </div>
+    {%- endif -%}
+  </div>
+{%- endif -%}
