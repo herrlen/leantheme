@@ -1,6 +1,6 @@
 {% comment %}
-  Lean Image with Text
-  Features: Custom Color Picker, Radius, Flexible Layout, Customizable Side Padding
+  Lean Image with Text (Modular & SEO Friendly)
+  Features: Blocks, freie H-Tag Wahl (h1-h4), Custom Color, Radius
 {% endcomment %}
 
 <div class="section-image-text section-{{ section.id }}-padding">
@@ -26,23 +26,45 @@
 
       <div class="grid-item-content">
         <div class="content-wrapper">
-          {%- if section.settings.subheading != blank -%}
-            <span class="subheading">{{ section.settings.subheading }}</span>
-          {%- endif -%}
           
-          {%- if section.settings.heading != blank -%}
-            <h2 class="heading">{{ section.settings.heading }}</h2>
-          {%- endif -%}
-          
-          {%- if section.settings.text != blank -%}
-            <div class="rte body-text">{{ section.settings.text }}</div>
-          {%- endif -%}
+          {%- for block in section.blocks -%}
+            {% case block.type %}
+              
+              {%- when 'caption' -%}
+                <{{ block.settings.heading_tag }} class="subheading" {{ block.shopify_attributes }}>
+                  {{ block.settings.caption | escape }}
+                </{{ block.settings.heading_tag }}>
 
-          {%- if section.settings.button_label != blank -%}
-            <a href="{{ section.settings.button_link }}" class="button-primary mt-4">
-              {{ section.settings.button_label }}
-            </a>
-          {%- endif -%}
+              {%- when 'heading' -%}
+                <{{ block.settings.heading_tag }} class="heading {{ block.settings.heading_size }}" {{ block.shopify_attributes }}>
+                  {{ block.settings.heading }}
+                </{{ block.settings.heading_tag }}>
+
+              {%- when 'text' -%}
+                <div class="rte body-text" {{ block.shopify_attributes }}>
+                  {{ block.settings.text }}
+                </div>
+
+              {%- when 'button' -%}
+                {%- if block.settings.button_label != blank -%}
+                  <a href="{{ block.settings.button_link }}" 
+                     class="{% if block.settings.button_style == 'secondary' %}button-secondary{% else %}button-primary{% endif %} mt-4"
+                     {{ block.shopify_attributes }}>
+                    {{ block.settings.button_label }}
+                  </a>
+                {%- endif -%}
+              
+              {%- when 'icon' -%}
+                 <div class="icon-block" {{ block.shopify_attributes }}>
+                   {%- if block.settings.custom_icon != blank -%}
+                     <img src="{{ block.settings.custom_icon | image_url: width: 50 }}" 
+                          alt="Icon" width="50" height="50" style="width: {{ block.settings.icon_width }}px; height: auto;">
+                   {%- endif -%}
+                 </div>
+
+            {% endcase %}
+          {%- endfor -%}
+
         </div>
       </div>
 
@@ -57,14 +79,10 @@
     color: #000000;
   }
 
-  /* CONTAINER LOGIC (Hier ist der Fix!) */
+  /* CONTAINER LOGIC */
   .page-width {
-    max-width: 1200px; /* Maximale Breite */
-    margin: 0 auto;    /* Zentriert den Container */
-    padding-left: 20px; /* Minimaler Schutzabstand Handy */
-    padding-right: 20px;
-    
-    /* ZUSÄTZLICHER USER-ABSTAND */
+    max-width: 1200px;
+    margin: 0 auto;   
     padding-left: clamp(20px, {{ section.settings.padding_side }}px, 10vw);
     padding-right: clamp(20px, {{ section.settings.padding_side }}px, 10vw);
   }
@@ -73,7 +91,6 @@
     padding-top: {{ section.settings.padding_top }}px;
     padding-bottom: {{ section.settings.padding_bottom }}px;
     
-    /* COLOR OVERRIDE */
     {% if section.settings.custom_bg_color != blank and section.settings.custom_bg_color != 'rgba(0,0,0,0)' %}
       background-color: {{ section.settings.custom_bg_color }} !important;
     {% endif %}
@@ -89,9 +106,9 @@
     }
   {% endif %}
 
-  /* Radius */
+  /* Radius & Shadow */
   .media-wrapper {
-    border-radius: {{ section.settings.corner_radius }}px; 
+    border-radius: {{ section.settings.corner_radius }}px;
     overflow: hidden;
     box-shadow: 0 4px 20px rgba(0,0,0,0.08);
   }
@@ -114,19 +131,43 @@
   }
 
   .image-text-img {
-    width: 100%; height: auto; display: block; object-fit: cover; aspect-ratio: 4/3; 
+    width: 100%; height: auto; display: block; object-fit: cover; aspect-ratio: 4/3;
   }
 
   .content-wrapper { padding: 20px 0; }
-  .subheading { text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.1em; opacity: 0.7; margin-bottom: 10px; display: block; font-weight: 700; }
-  .heading { font-size: clamp(2rem, 4vw, 2.5rem); line-height: 1.1; margin-bottom: 20px; margin-top: 0; }
-  .body-text { font-size: 1.1rem; line-height: 1.6; margin-bottom: 30px; opacity: 0.9; }
-  .mt-4 { margin-top: 1.5rem; display: inline-block; }
+  
+  /* Block Styles */
+  .subheading { 
+    text-transform: uppercase; 
+    font-size: 0.85rem; 
+    letter-spacing: 0.1em; 
+    opacity: 0.7; 
+    margin-bottom: 10px; 
+    display: block; 
+    font-weight: 700;
+    /* Reset margin für h tags, falls genutzt */
+    margin-top: 0;
+    line-height: 1.2;
+  }
+  
+  .heading { line-height: 1.1; margin-bottom: 20px; margin-top: 0; }
+  .heading.h2 { font-size: clamp(2rem, 4vw, 2.5rem); }
+  .heading.h3 { font-size: clamp(1.5rem, 3vw, 2rem); }
+  
+  .body-text { font-size: 1.1rem; line-height: 1.6; margin-bottom: 20px; opacity: 0.9; }
+  .body-text p { margin: 0 0 15px 0; }
+  .body-text p:last-child { margin-bottom: 0; }
+  
+  .mt-4 { margin-top: 1rem; display: inline-block; margin-right: 10px; }
+  .icon-block { margin-bottom: 15px; }
+
+  .button-primary { padding: 12px 24px; background: #000; color: #fff; text-decoration: none; border-radius: 4px; }
+  .button-secondary { padding: 12px 24px; background: transparent; border: 1px solid currentColor; text-decoration: none; border-radius: 4px; }
 </style>
 
 {% schema %}
 {
-  "name": "Bild mit Text",
+  "name": "Bild mit Text (Modular)",
   "settings": [
     {
       "type": "image_picker",
@@ -170,55 +211,14 @@
       "default": 12
     },
     {
-      "type": "header",
-      "content": "Abstände & Layout"
-    },
-    {
-      "type": "paragraph",
-      "content": "Steuere hier, wie viel Platz links und rechts gelassen wird."
-    },
-    {
       "type": "range",
       "id": "padding_side",
       "min": 20,
       "max": 200,
       "step": 10,
       "unit": "px",
-      "label": "Seitlicher Abstand (Padding)",
+      "label": "Seitlicher Abstand",
       "default": 20
-    },
-    {
-      "type": "header",
-      "content": "Inhalt"
-    },
-    {
-      "type": "text",
-      "id": "subheading",
-      "label": "Subline",
-      "default": "Unsere Story"
-    },
-    {
-      "type": "text",
-      "id": "heading",
-      "label": "Überschrift",
-      "default": "Qualität, die überzeugt"
-    },
-    {
-      "type": "richtext",
-      "id": "text",
-      "label": "Text",
-      "default": "<p>Beschreibe hier deine Marke.</p>"
-    },
-    {
-      "type": "text",
-      "id": "button_label",
-      "label": "Button Text",
-      "default": "Mehr erfahren"
-    },
-    {
-      "type": "url",
-      "id": "button_link",
-      "label": "Button Link"
     },
     {
       "type": "range",
@@ -241,9 +241,144 @@
       "default": 60
     }
   ],
+  "blocks": [
+    {
+      "type": "heading",
+      "name": "Überschrift",
+      "limit": 3,
+      "settings": [
+        {
+          "type": "text",
+          "id": "heading",
+          "default": "Bild mit Text",
+          "label": "Überschrift"
+        },
+        {
+          "type": "select",
+          "id": "heading_size",
+          "options": [
+            { "value": "h2", "label": "Groß (H2 Look)" },
+            { "value": "h3", "label": "Mittel (H3 Look)" }
+          ],
+          "default": "h2",
+          "label": "Optische Größe"
+        },
+        {
+          "type": "select",
+          "id": "heading_tag",
+          "label": "HTML Tag (SEO)",
+          "options": [
+            { "value": "h1", "label": "H1" },
+            { "value": "h2", "label": "H2" },
+            { "value": "h3", "label": "H3" },
+            { "value": "h4", "label": "H4" },
+            { "value": "div", "label": "DIV" }
+          ],
+          "default": "h2",
+          "info": "Wähle den semantischen Tag für SEO."
+        }
+      ]
+    },
+    {
+      "type": "caption",
+      "name": "Subline",
+      "limit": 3,
+      "settings": [
+        {
+          "type": "text",
+          "id": "caption",
+          "default": "Über uns",
+          "label": "Text"
+        },
+        {
+          "type": "select",
+          "id": "heading_tag",
+          "label": "HTML Tag",
+          "options": [
+            { "value": "span", "label": "SPAN (Standard)" },
+            { "value": "p", "label": "Paragraph (P)" },
+            { "value": "h3", "label": "H3" },
+            { "value": "h4", "label": "H4" },
+            { "value": "h5", "label": "H5" },
+            { "value": "h6", "label": "H6" }
+          ],
+          "default": "span"
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "name": "Text",
+      "limit": 3,
+      "settings": [
+        {
+          "type": "richtext",
+          "id": "text",
+          "default": "<p>Nutze diesen Text um deine Marke näher zu beschreiben.</p>",
+          "label": "Inhalt"
+        }
+      ]
+    },
+    {
+      "type": "button",
+      "name": "Button",
+      "limit": 2,
+      "settings": [
+        {
+          "type": "text",
+          "id": "button_label",
+          "default": "Mehr erfahren",
+          "label": "Button Label"
+        },
+        {
+          "type": "url",
+          "id": "button_link",
+          "label": "Button Link"
+        },
+        {
+          "type": "select",
+          "id": "button_style",
+          "options": [
+            { "value": "primary", "label": "Primär" },
+            { "value": "secondary", "label": "Sekundär (Outline)" }
+          ],
+          "default": "primary",
+          "label": "Stil"
+        }
+      ]
+    },
+    {
+      "type": "icon",
+      "name": "Icon / Logo",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "custom_icon",
+          "label": "Icon hochladen"
+        },
+        {
+          "type": "range",
+          "id": "icon_width",
+          "min": 20,
+          "max": 100,
+          "step": 5,
+          "unit": "px",
+          "label": "Icon Größe",
+          "default": 40
+        }
+      ]
+    }
+  ],
   "presets": [
     {
-      "name": "Bild mit Text"
+      "name": "Bild mit Text (Modular)",
+      "blocks": [
+        { "type": "caption" },
+        { "type": "heading" },
+        { "type": "text" },
+        { "type": "button" }
+      ]
     }
   ]
 }
