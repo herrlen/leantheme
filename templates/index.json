@@ -24,6 +24,13 @@
     "trust_bar_LhHWQW": {
       "type": "trust-bar",
       "blocks": {
+        "usp_9LmPbJ": {
+          "type": "usp",
+          "settings": {
+            "icon": "shipping",
+            "text": "Kostenloser Versand"
+          }
+        },
         "usp_p4cFhU": {
           "type": "usp",
           "settings": {
@@ -47,6 +54,7 @@
         }
       },
       "block_order": [
+        "usp_9LmPbJ",
         "usp_p4cFhU",
         "usp_xnBjAj",
         "usp_RAzt8G"
@@ -63,6 +71,13 @@
     "image_with_text_7xmUfw": {
       "type": "image-with-text",
       "blocks": {
+        "icon_9n9rFB": {
+          "type": "icon",
+          "settings": {
+            "custom_icon": "shopify://shop_images/lensuh.jpg",
+            "icon_width": 40
+          }
+        },
         "caption_FQrqjy": {
           "type": "caption",
           "settings": {
@@ -94,6 +109,7 @@
         }
       },
       "block_order": [
+        "icon_9n9rFB",
         "caption_FQrqjy",
         "heading_Ck8TyY",
         "text_UQYKHF",
@@ -102,8 +118,8 @@
       "name": "Bild mit Text (Modular)",
       "settings": {
         "layout": "left",
-        "custom_bg_color": "transparent",
-        "custom_text_color": "transparent",
+        "custom_bg_color": "rgba(0,0,0,0)",
+        "custom_text_color": "rgba(0,0,0,0)",
         "corner_radius": 12,
         "padding_side": 20,
         "padding_top": 60,
