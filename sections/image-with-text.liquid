@@ -293,16 +293,17 @@
         {
           "type": "select",
           "id": "heading_tag",
-          "label": "HTML Tag",
+          "label": "HTML Tag (SEO)",
           "options": [
-            { "value": "span", "label": "SPAN (Standard)" },
             { "value": "p", "label": "Paragraph (P)" },
+            { "value": "span", "label": "Span" },
+            { "value": "h1", "label": "H1" },
+            { "value": "h2", "label": "H2" },
             { "value": "h3", "label": "H3" },
-            { "value": "h4", "label": "H4" },
-            { "value": "h5", "label": "H5" },
-            { "value": "h6", "label": "H6" }
+            { "value": "h4", "label": "H4" }
           ],
-          "default": "span"
+          "default": "p",
+          "info": "Wähle den semantischen Tag für SEO."
         }
       ]
     },
