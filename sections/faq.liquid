@@ -1,27 +1,24 @@
 {% comment %}
-  Lean FAQ Section (Accordion)
-  Uses native <details> tag for accessibility + CSS animation.
+  Lean FAQ Section (Pro Version)
+  Features: Native <details>, SEO Schema (JSON-LD), Grid-Mode, Auto-Close Logic
 {% endcomment %}
 
 <div class="faq-section section-{{ section.id }}-padding">
-  <div class="page-width page-width--narrow">
+  <div class="page-width {% if section.settings.layout == 'list' %}page-width--narrow{% endif %}">
     
     {%- if section.settings.heading != blank -%}
-      <h2 class="faq-heading text-{{ section.settings.heading_alignment }}">
-        {{ section.settings.heading }}
-      </h2>
-    {%- endif -%}
-
-    {%- if section.settings.text != blank -%}
-      <div class="faq-text text-{{ section.settings.heading_alignment }}">
-        {{ section.settings.text }}
+      <div class="faq-header text-{{ section.settings.heading_alignment }}">
+        <h2 class="faq-heading">{{ section.settings.heading }}</h2>
+        {%- if section.settings.text != blank -%}
+          <div class="faq-text">{{ section.settings.text }}</div>
+        {%- endif -%}
       </div>
     {%- endif -%}
 
-    <div class="faq-container">
+    <div class="faq-container {% if section.settings.layout == 'grid' %}faq-grid{% endif %}" id="Accordion-{{ section.id }}">
       {%- for block in section.blocks -%}
         <div class="faq-item" {{ block.shopify_attributes }}>
-          <details>
+          <details {% if section.settings.layout == 'grid' %}class="height-full"{% endif %}>
             <summary>
               <span class="faq-question">{{ block.settings.question }}</span>
               <span class="icon-plus">
@@ -39,6 +36,43 @@
   </div>
 </div>
 
+{% comment %} SEO SCHEMA: Das ist bares Geld wert für Ranking {% endcomment %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {%- for block in section.blocks -%}
+    {
+      "@type": "Question",
+      "name": "{{ block.settings.question | escape }}",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "{{ block.settings.answer | strip_html | escape }}"
+      }
+    }{% unless forloop.last %},{% endunless %}
+    {%- endfor -%}
+  ]
+}
+</script>
+
+{% comment %} AUTO-CLOSE LOGIK (Nur wenige Zeilen Vanilla JS) {% endcomment %}
+{%- if section.settings.enable_accordion -%}
+<script>
+  document.querySelectorAll('#Accordion-{{ section.id }} details').forEach((targetDetail) => {
+    targetDetail.addEventListener("click", () => {
+      if (!targetDetail.open) {
+        document.querySelectorAll('#Accordion-{{ section.id }} details').forEach((detail) => {
+          if (detail !== targetDetail) {
+            detail.removeAttribute("open");
+          }
+        });
+      }
+    });
+  });
+</script>
+{%- endif -%}
+
 <style>
   .section-{{ section.id }}-padding {
     padding-top: {{ section.settings.padding_top }}px;
@@ -46,74 +80,66 @@
     background-color: {{ section.settings.bg_color }};
   }
 
-  /* Zentrierter schmaler Container für Lesbarkeit */
-  .page-width--narrow {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 0 20px;
-  }
+  /* Layout Logic */
+  .page-width { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+  .page-width--narrow { max-width: 800px; }
 
   .text-center { text-align: center; }
   .text-left { text-align: left; }
 
-  .faq-heading {
-    font-size: 2rem;
-    margin-bottom: 10px;
+  .faq-heading { font-size: 2rem; margin-bottom: 10px; margin-top: 0; }
+  .faq-text { margin-bottom: 40px; opacity: 0.8; }
+  .faq-header { margin-bottom: 40px; }
+
+  /* Grid Layout (Neu) */
+  .faq-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 15px;
   }
-  
-  .faq-text {
-    margin-bottom: 40px;
-    opacity: 0.8;
+  @media(min-width: 768px) {
+    .faq-grid { grid-template-columns: 1fr 1fr; gap: 20px; }
   }
 
-  /* Accordion Styling */
+  /* Accordion Item Styling */
   .faq-item {
     border-bottom: 1px solid rgba(0,0,0,0.1);
+    {% if section.settings.layout == 'grid' %}
+      border: 1px solid rgba(0,0,0,0.1);
+      border-radius: 8px;
+      background: #fff; /* Karten-Look im Grid */
+    {% endif %}
   }
   
-  .faq-item:first-child {
-    border-top: 1px solid rgba(0,0,0,0.1);
-  }
+  {% if section.settings.layout == 'list' %}
+  .faq-item:first-child { border-top: 1px solid rgba(0,0,0,0.1); }
+  {% endif %}
 
-  details {
-    transition: all 0.3s ease;
-  }
-
+  details { transition: all 0.3s ease; }
+  
   summary {
-    padding: 20px 0;
+    padding: 20px;
     cursor: pointer;
-    list-style: none; /* Entfernt Standard-Dreieck */
+    list-style: none;
     display: flex;
     justify-content: space-between;
     align-items: center;
     position: relative;
-  }
-
-  summary::-webkit-details-marker {
-    display: none;
-  }
-
-  .faq-question {
     font-weight: 600;
-    font-size: 1.1rem;
-    padding-right: 20px;
   }
+  
+  /* Entfernt Dreieck in allen Browsern */
+  summary::-webkit-details-marker { display: none; }
 
-  .icon-plus {
-    transition: transform 0.3s ease;
-    flex-shrink: 0;
-  }
+  .faq-question { font-size: 1.1rem; padding-right: 20px; }
+  .icon-plus { transition: transform 0.3s ease; flex-shrink: 0; display: flex; }
 
-  /* Wenn geöffnet: Icon drehen */
-  details[open] summary .icon-plus {
-    transform: rotate(45deg); /* Aus Plus wird X */
-  }
+  details[open] summary .icon-plus { transform: rotate(45deg); }
 
   .faq-answer {
-    padding-bottom: 25px;
+    padding: 0 20px 25px 20px;
     line-height: 1.6;
     color: rgba(0,0,0,0.8);
-    /* Simple Animation beim Öffnen */
     animation: fadeIn 0.4s ease forwards;
   }
 
@@ -121,13 +147,16 @@
     from { opacity: 0; transform: translateY(-5px); }
     to { opacity: 1; transform: translateY(0); }
   }
-
 </style>
 
 {% schema %}
 {
-  "name": "FAQ / Akkordeon",
+  "name": "FAQ / Akkordeon Pro",
   "settings": [
+    {
+      "type": "header",
+      "content": "Inhalt"
+    },
     {
       "type": "text",
       "id": "heading",
@@ -148,6 +177,31 @@
         { "value": "center", "label": "Zentriert" }
       ],
       "default": "center"
+    },
+    {
+      "type": "header",
+      "content": "Layout & Funktion"
+    },
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "Design Stil",
+      "options": [
+        { "value": "list", "label": "Liste (Klassisch)" },
+        { "value": "grid", "label": "Raster (Karten)" }
+      ],
+      "default": "list"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_accordion",
+      "label": "Smart Accordion",
+      "info": "Schließt andere Fragen automatisch, wenn eine geöffnet wird.",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Farben"
     },
     {
       "type": "color",
@@ -191,14 +245,14 @@
           "type": "richtext",
           "id": "answer",
           "label": "Antwort",
-          "default": "<p>Wir versenden innerhalb von 24 Stunden. Dein Paket ist meist in 2-3 Tagen bei dir.</p>"
+          "default": "<p>Wir versenden innerhalb von 24 Stunden.</p>"
         }
       ]
     }
   ],
   "presets": [
     {
-      "name": "FAQ / Akkordeon",
+      "name": "FAQ / Akkordeon Pro",
       "blocks": [
         { "type": "question" },
         { "type": "question" },
