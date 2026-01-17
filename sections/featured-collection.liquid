@@ -1,62 +1,103 @@
-{% comment %} 
-  Featured Collection Section 
-  Zeigt eine ausgewählte Kategorie auf der Startseite an.
+{% comment %}
+  Lean Featured Collection (Hybrid: Snap-Scroll & Grid)
+  Features: 
+  - Mobile: Horizontales Wischen (Spart Platz, App-Feeling)
+  - Desktop: Wahlweise Wischen oder Raster (Grid)
+  - UX: Hover-Bildwechsel, Sale-Badges, Smart Pricing
 {% endcomment %}
 
-<div class="featured-collection section-{{ section.id }}-padding">
+<div class="collection-snap section-{{ section.id }}-padding">
   <div class="page-width">
     
     {%- if section.settings.title != blank -%}
-      <h2 class="section-heading">{{ section.settings.title | escape }}</h2>
-    {%- endif -%}
-
-    <div class="product-grid">
-      {%- assign collection = collections[section.settings.collection] -%}
-      
-      {%- if collection != blank -%}
-        {%- for product in collection.products limit: section.settings.products_to_show -%}
-          <a href="{{ product.url }}" class="product-card">
-            <div class="card-media">
-              <img src="{{ product.featured_image | img_url: '600x' }}" 
-                   alt="{{ product.featured_image.alt | escape }}" 
-                   width="600" height="600"
-                   loading="lazy" 
-                   style="width: 100%; height: 100%; object-fit: cover;">
-            </div>
-            <div class="card-info">
-              <h3 class="card-title">{{ product.title }}</h3>
-              <div class="card-price">
-                {% if product.compare_at_price > product.price %}
-                  <span class="compare">{{ product.compare_at_price | money }}</span>
-                {% endif %}
-                <span>{{ product.price | money }}</span>
-              </div>
-            </div>
+      <div class="collection-header">
+        <h2 class="collection-title {{ section.settings.heading_size }}">{{ section.settings.title }}</h2>
+        {%- if section.settings.show_view_all and section.settings.collection != blank -%}
+          <a href="{{ section.settings.collection.url }}" class="view-all-link">
+            {{ section.settings.view_all_label }} <span aria-hidden="true">→</span>
           </a>
-        {%- endfor -%}
-      {%- else -%}
-        {%- for i in (1..4) -%}
-          <div class="product-card">
-            <div class="card-media placeholder-media">
-              {{ 'product-' | append: i | placeholder_svg_tag: 'placeholder-svg' }}
-            </div>
-            <div class="card-info">
-              <h3 class="card-title">Beispiel Produkt</h3>
-              <div class="card-price">19,99 €</div>
-            </div>
-          </div>
-        {%- endfor -%}
-      {%- endif -%}
-    </div>
-
-    {%- if section.settings.show_view_all and collection != blank -%}
-      <div class="view-all-wrapper">
-        <a href="{{ collection.url }}" class="button-outline">
-          Alle anzeigen
-        </a>
+        {%- endif -%}
       </div>
     {%- endif -%}
 
+    {%- assign collection = section.settings.collection -%}
+    {%- assign product_limit = section.settings.products_to_show -%}
+
+    <div class="product-container {% if section.settings.enable_desktop_slider %}snap-track-wrapper{% else %}grid-wrapper{% endif %}">
+      <div class="{% if section.settings.enable_desktop_slider %}snap-track{% else %}grid-track desktop-grid-{{ section.settings.columns_desktop }}{% endif %}">
+        
+        {%- if collection != blank -%}
+          {%- for product in collection.products limit: product_limit -%}
+            <div class="product-card">
+              <a href="{{ product.url }}" class="product-link">
+                <div class="product-image-wrapper ratio-{{ section.settings.image_ratio }}">
+                  {%- if product.featured_media -%}
+                    <img
+                      src="{{ product.featured_media | image_url: width: 600 }}"
+                      alt="{{ product.featured_media.alt | escape }}"
+                      width="{{ product.featured_media.width }}"
+                      height="{{ product.featured_media.height }}"
+                      loading="lazy"
+                      class="product-img primary"
+                    >
+                    {%- if product.media[1] != blank and section.settings.show_secondary_image -%}
+                      <img
+                        src="{{ product.media[1] | image_url: width: 600 }}"
+                        alt="{{ product.media[1].alt | escape }}"
+                        loading="lazy"
+                        class="product-img secondary"
+                      >
+                    {%- endif -%}
+                  {%- else -%}
+                    {{ 'product-1' | placeholder_svg_tag: 'product-img placeholder' }}
+                  {%- endif -%}
+
+                  {%- if section.settings.show_badges -%}
+                    <div class="badge-container">
+                      {%- if product.available == false -%}
+                        <span class="badge badge--soldout">Sold out</span>
+                      {%- elsif product.compare_at_price > product.price -%}
+                        <span class="badge badge--sale">Sale</span>
+                      {%- endif -%}
+                    </div>
+                  {%- endif -%}
+                </div>
+
+                <div class="product-info">
+                  <h3 class="product-title">{{ product.title }}</h3>
+                  <div class="product-price">
+                    {%- if product.compare_at_price > product.price -%}
+                      <span class="price-compare">{{ product.compare_at_price | money }}</span>
+                      <span class="price-regular sale">{{ product.price | money }}</span>
+                    {%- else -%}
+                      <span class="price-regular">{{ product.price | money }}</span>
+                    {%- endif -%}
+                  </div>
+                </div>
+              </a>
+            </div>
+          {%- endfor -%}
+        
+        {%- else -%}
+          {% comment %} Onboarding (Platzhalter) {% endcomment %}
+          {%- for i in (1..4) -%}
+            <div class="product-card">
+              <div class="product-image-wrapper ratio-{{ section.settings.image_ratio }}">
+                {{ 'product-' | append: i | placeholder_svg_tag: 'product-img placeholder' }}
+              </div>
+              <div class="product-info">
+                <h3 class="product-title">Beispiel Produkt {{ i }}</h3>
+                <div class="product-price">19,99 €</div>
+              </div>
+            </div>
+          {%- endfor -%}
+        {%- endif -%}
+
+        {% if section.settings.enable_desktop_slider %}
+          <div class="snap-spacer"></div>
+        {% endif %}
+      </div>
+    </div>
   </div>
 </div>
 
@@ -64,53 +105,110 @@
   .section-{{ section.id }}-padding {
     padding-top: {{ section.settings.padding_top }}px;
     padding-bottom: {{ section.settings.padding_bottom }}px;
-  }
-  .page-width {
-    margin: 0 auto; max-width: 1200px;
-    padding-left: clamp(20px, {{ section.settings.padding_side }}px, 10vw);
-    padding-right: clamp(20px, {{ section.settings.padding_side }}px, 10vw);
+    background-color: {{ section.settings.bg_color }};
   }
 
-  .section-heading { font-size: 2rem; margin-bottom: 30px; text-align: center; }
+  .page-width { max-width: 1300px; margin: 0 auto; padding: 0 20px; }
 
-  /* Grid Layout (Gleiches Design wie auf der Kategorieseite) */
-  .product-grid {
-    display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px 15px;
+  /* Header */
+  .collection-header {
+    display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 25px;
   }
-  @media(min-width: 750px) {
-    .product-grid { grid-template-columns: repeat({{ section.settings.columns_desktop }}, 1fr); gap: 40px 30px; }
+  .collection-title { margin: 0; line-height: 1.1; }
+  .collection-title.h2 { font-size: 2rem; }
+  .collection-title.h3 { font-size: 1.5rem; }
+  
+  .view-all-link { text-decoration: none; color: inherit; font-size: 0.9rem; opacity: 0.7; }
+  .view-all-link:hover { opacity: 1; text-decoration: underline; }
+
+  /* === LAYOUT LOGIC === */
+  
+  /* 1. SLIDER MODE (Always on Mobile, Optional on Desktop) */
+  .snap-track-wrapper { margin-right: -20px; overflow: hidden; }
+  
+  .snap-track {
+    display: flex; gap: 20px; overflow-x: auto;
+    scroll-snap-type: x mandatory; 
+    padding-bottom: 30px; padding-right: 20px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: #000000 transparent; /* Firefox */
   }
+  
+  /* Slider Scrollbar Styling */
+  .snap-track::-webkit-scrollbar { height: 3px; }
+  .snap-track::-webkit-scrollbar-track { background: transparent; }
+  .snap-track::-webkit-scrollbar-thumb { background: #ddd; border-radius: 4px; }
+  .snap-track:hover::-webkit-scrollbar-thumb { background: #555; }
 
-  /* Card Styles */
-  .product-card { text-decoration: none; color: inherit; display: block; }
-  .card-media { 
-    position: relative; width: 100%; aspect-ratio: 1/1; overflow: hidden; 
-    border-radius: 4px; background: #f4f4f4; 
+  .snap-track .product-card {
+    flex: 0 0 70%; /* Mobile Peeking */
+    scroll-snap-align: start;
+    max-width: 320px;
   }
-  .card-media img { display: block; transition: transform 0.3s; }
-  .product-card:hover .card-media img { transform: scale(1.02); }
+  
+  @media(min-width: 600px) { .snap-track .product-card { flex: 0 0 45%; } }
+  @media(min-width: 900px) { .snap-track .product-card { flex: 0 0 30%; } }
+  @media(min-width: 1200px) { .snap-track .product-card { flex: 0 0 23%; } }
 
-  .card-info { margin-top: 10px; display: flex; justify-content: space-between; font-size: 1rem; }
-  .card-price { font-weight: bold; white-space: nowrap; margin-left: 10px; }
-  .compare { text-decoration: line-through; opacity: 0.5; margin-right: 5px; font-weight: normal; }
+  .snap-spacer { flex: 0 0 1px; }
 
-  /* Placeholder */
-  .placeholder-media { display: flex; align-items: center; justify-content: center; background: #eee; }
-  .placeholder-svg { width: 50%; height: 50%; opacity: 0.5; }
-
-  /* Button "Alle anzeigen" */
-  .view-all-wrapper { text-align: center; margin-top: 40px; }
-  .button-outline { 
-    display: inline-block; padding: 10px 25px; border: 1px solid #000; 
-    text-decoration: none; color: #000; border-radius: 4px; transition: all 0.3s;
+  /* 2. GRID MODE (Desktop Only Override) */
+  @media(min-width: 990px) {
+    .grid-track {
+      display: grid; gap: 30px;
+    }
+    .desktop-grid-3 { grid-template-columns: repeat(3, 1fr); }
+    .desktop-grid-4 { grid-template-columns: repeat(4, 1fr); }
+    .desktop-grid-5 { grid-template-columns: repeat(5, 1fr); }
+    
+    /* Reset Grid Card width */
+    .grid-track .product-card { max-width: none; flex: unset; }
   }
-  .button-outline:hover { background: #000; color: #fff; }
+  
+  /* Wenn Desktop Slider aktiv ist, ignorieren wir Grid styles */
 
+  /* === CARD DESIGN === */
+  .product-link { text-decoration: none; color: inherit; display: block; }
+  
+  .product-image-wrapper {
+    position: relative; background: #f4f4f4; border-radius: 0px; overflow: hidden; margin-bottom: 12px;
+  }
+  
+  /* Aspect Ratios */
+  .ratio-square { aspect-ratio: 1 / 1; }
+  .ratio-portrait { aspect-ratio: 3 / 4; }
+  .ratio-landscape { aspect-ratio: 16 / 9; }
+
+  .product-img {
+    width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s ease;
+  }
+  
+  /* Hover Effect */
+  .product-image-wrapper:hover .product-img.primary { transform: scale(1.03); }
+  .product-img.secondary {
+    position: absolute; top: 0; left: 0; opacity: 0; z-index: 2;
+  }
+  .product-image-wrapper:hover .product-img.secondary { opacity: 1; transform: scale(1.03); }
+
+  /* Badges */
+  .badge-container { position: absolute; top: 10px; left: 10px; display: flex; flex-direction: column; gap: 5px; z-index: 3; }
+  .badge {
+    padding: 4px 10px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #fff;
+  }
+  .badge--soldout { background: #333; }
+  .badge--sale { background: #d32f2f; }
+
+  /* Info */
+  .product-title { font-size: 1rem; margin: 0 0 5px 0; font-weight: 500; }
+  .product-price { font-size: 0.95rem; }
+  .price-compare { text-decoration: line-through; opacity: 0.6; margin-right: 6px; font-size: 0.9em; }
+  .price-regular.sale { color: #d32f2f; }
 </style>
 
 {% schema %}
 {
-  "name": "Kategorie Vorschau",
+  "name": "Featured Collection Pro",
   "settings": [
     {
       "type": "text",
@@ -119,57 +217,126 @@
       "default": "Bestseller"
     },
     {
+      "type": "select",
+      "id": "heading_size",
+      "label": "Überschrift Größe",
+      "options": [
+        { "value": "h2", "label": "Groß" },
+        { "value": "h3", "label": "Mittel" }
+      ],
+      "default": "h2"
+    },
+    {
       "type": "collection",
       "id": "collection",
-      "label": "Kategorie auswählen"
+      "label": "Kategorie wählen"
     },
     {
       "type": "range",
       "id": "products_to_show",
-      "min": 2,
+      "min": 4,
       "max": 12,
       "step": 1,
-      "default": 4,
+      "default": 8,
       "label": "Anzahl Produkte"
+    },
+    {
+      "type": "header",
+      "content": "Layout Desktop"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_desktop_slider",
+      "label": "Slider auch auf Desktop nutzen",
+      "default": true,
+      "info": "Wenn deaktiviert, werden Produkte als Raster angezeigt."
     },
     {
       "type": "range",
       "id": "columns_desktop",
-      "min": 2,
+      "min": 3,
       "max": 5,
       "step": 1,
       "default": 4,
-      "label": "Spalten (Desktop)"
+      "label": "Spalten im Raster (falls Slider aus)"
+    },
+    {
+      "type": "header",
+      "content": "Karten Design"
+    },
+    {
+      "type": "select",
+      "id": "image_ratio",
+      "label": "Bildformat",
+      "options": [
+        { "value": "square", "label": "Quadratisch (1:1)" },
+        { "value": "portrait", "label": "Portrait (3:4)" },
+        { "value": "landscape", "label": "Landscape (16:9)" }
+      ],
+      "default": "portrait"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_secondary_image",
+      "label": "Hover-Bild anzeigen",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_badges",
+      "label": "Badges (Sale/Soldout)",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Link"
     },
     {
       "type": "checkbox",
       "id": "show_view_all",
-      "default": true,
-      "label": "Button 'Alle anzeigen' zeigen"
+      "label": "'Alle anzeigen' Link",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "view_all_label",
+      "label": "Link Text",
+      "default": "Alle ansehen"
     },
     {
       "type": "header",
-      "content": "Abstände"
+      "content": "Farben & Abstand"
     },
     {
-      "type": "range",
-      "id": "padding_side",
-      "min": 20, "max": 200, "step": 10, "default": 20, "label": "Seitlicher Abstand"
+      "type": "color",
+      "id": "bg_color",
+      "label": "Hintergrund",
+      "default": "#ffffff"
     },
     {
       "type": "range",
       "id": "padding_top",
-      "min": 0, "max": 100, "step": 4, "default": 60, "label": "Abstand oben"
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Abstand Oben",
+      "default": 60
     },
     {
       "type": "range",
       "id": "padding_bottom",
-      "min": 0, "max": 100, "step": 4, "default": 60, "label": "Abstand unten"
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "Abstand Unten",
+      "default": 60
     }
   ],
   "presets": [
     {
-      "name": "Kategorie Vorschau"
+      "name": "Featured Collection Pro"
     }
   ]
 }
