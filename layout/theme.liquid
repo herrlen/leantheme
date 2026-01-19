@@ -87,5 +87,20 @@
     }
   });
 </script>
-    </body>
+{% section 'footer' %}
+  
+  {% section 'cart-drawer' %}
+<script>
+  // Überschreibe alle Links, die zum Warenkorb führen
+  document.addEventListener("DOMContentLoaded", function() {
+    const cartLinks = document.querySelectorAll('a[href="/cart"]');
+    cartLinks.forEach(link => {
+      link.addEventListener('click', function(e) {
+        e.preventDefault(); // Verhindert Seite laden
+        openCartDrawer(); // Öffnet Drawer
+      });
+    });
+  });
+</script>   
+</body>
 </html>

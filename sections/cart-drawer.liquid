@@ -1,66 +1,284 @@
 {% comment %}
-  Lean Cart Drawer
-  Wird per AJAX aktualisiert.
+  Lean Cart Drawer (Slide-Out)
+  Features: AJAX API, Free Shipping Bar, Auto-Update
 {% endcomment %}
 
-<div class="drawer-container" id="CartDrawer">
-  <div class="drawer-inner">
+<div id="cart-drawer" class="cart-drawer-container">
+  <div class="cart-drawer-backdrop" onclick="closeCartDrawer()"></div>
+  
+  <div class="cart-drawer">
     
     <div class="drawer-header">
-      <h2 class="drawer-title">Dein Warenkorb</h2>
-      <button type="button" class="drawer-close" onclick="closeCartDrawer()">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      <h2 class="drawer-title">Dein Warenkorb (<span id="cart-count-drawer">{{ cart.item_count }}</span>)</h2>
+      <button class="drawer-close" onclick="closeCartDrawer()" aria-label="Schließen">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
       </button>
     </div>
 
-    <div class="drawer-body">
-      {%- if cart.item_count > 0 -%}
-        <div class="drawer-items">
-          {%- for item in cart.items -%}
-            <div class="drawer-item">
-              {% if item.image %}
-                <img class="drawer-item-img" src="{{ item.image | image_url: width: 200 }}" alt="{{ item.title | escape }}" width="80" height="80" loading="lazy">
-              {% endif %}
-              
-              <div class="drawer-item-info">
-                <a href="{{ item.url }}" class="drawer-item-title">{{ item.product.title }}</a>
-                {% unless item.product.has_only_default_variant %}
-                  <p class="drawer-item-variant">{{ item.variant.title }}</p>
-                {% endunless %}
-                <div class="drawer-item-price">
-                  {{ item.final_line_price | money }}
-                </div>
-                <div class="drawer-qty-wrapper">
-                    <span class="qty-text">Menge: {{ item.quantity }}</span>
-                </div>
-              </div>
-            </div>
-          {%- endfor -%}
-        </div>
-      {%- else -%}
-        <div class="drawer-empty">
-          <p>Dein Warenkorb ist leer.</p>
-          <button class="button-primary" onclick="closeCartDrawer()">Weiter shoppen</button>
-        </div>
-      {%- endif -%}
-    </div>
-
-    {%- if cart.item_count > 0 -%}
-      <div class="drawer-footer">
-        <div class="drawer-subtotal">
-          <span>Zwischensumme</span>
-          <span>{{ cart.total_price | money }}</span>
-        </div>
-        <div class="drawer-buttons">
-          <a href="/checkout" class="button-primary button-full">Zur Kasse</a>
+    {% if section.settings.show_shipping_bar %}
+      {% assign free_shipping_threshold = section.settings.shipping_threshold | times: 100 %}
+      {% assign cart_total = cart.total_price %}
+      {% assign remaining = free_shipping_threshold | minus: cart_total %}
+      
+      <div class="drawer-shipping-bar" id="drawer-shipping-bar" data-threshold="{{ free_shipping_threshold }}">
+        <p class="shipping-text">
+          {% if remaining > 0 %}
+            Nur noch <strong>{{ remaining | money }}</strong> bis zum kostenlosen Versand!
+          {% else %}
+            Du hast dir <strong>kostenlosen Versand</strong> verdient! 🎉
+          {% endif %}
+        </p>
+        <div class="shipping-progress-bg">
+          <div class="shipping-progress-fill" style="width: {{ cart_total | times: 100 | divided_by: free_shipping_threshold | at_most: 100 }}%"></div>
         </div>
       </div>
-    {%- endif -%}
-    
+    {% endif %}
+
+    <div class="drawer-items" id="drawer-items">
+      {% if cart.item_count > 0 %}
+        {% for item in cart.items %}
+          {% render 'cart-drawer-item', item: item %}
+        {% endfor %}
+      {% else %}
+        <div class="drawer-empty">
+          <p>Dein Warenkorb ist leer.</p>
+          <button onclick="closeCartDrawer()" class="btn-continue">Weiter shoppen</button>
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="drawer-footer" id="drawer-footer">
+      {% if cart.item_count > 0 %}
+        <div class="cart-summary">
+          <div class="summary-row">
+            <span>Zwischensumme</span>
+            <span id="cart-total-price">{{ cart.total_price | money }}</span>
+          </div>
+          <small class="tax-note">Inkl. MwSt., zzgl. Versand</small>
+        </div>
+        
+        <form action="/cart" method="post" id="cart-drawer-form">
+          <button type="submit" name="checkout" class="btn-checkout full-width">
+            Zur Kasse gehen
+          </button>
+        </form>
+      {% endif %}
+    </div>
+
   </div>
 </div>
-<div class="drawer-overlay" onclick="closeCartDrawer()"></div>
+
+{% comment %}
+  TEMPLATE FÜR JS ITEMS (Damit wir HTML nicht im JS bauen müssen)
+{% endcomment %}
+<script id="cart-item-template" type="text/template">
+  <div class="drawer-item" data-line-item-key="{key}">
+    <div class="item-img">
+      <img src="{image}" alt="{title}" width="80" height="80" loading="lazy">
+    </div>
+    <div class="item-info">
+      <a href="{url}" class="item-title">{title}</a>
+      <div class="item-variant">{variant}</div>
+      <div class="item-price">{price}</div>
+      
+      <div class="item-controls">
+        <div class="qty-adjust">
+          <button type="button" onclick="changeQty('{key}', {qty_minus})">-</button>
+          <span>{qty}</span>
+          <button type="button" onclick="changeQty('{key}', {qty_plus})">+</button>
+        </div>
+        <button type="button" class="item-remove" onclick="changeQty('{key}', 0)">Entfernen</button>
+      </div>
+    </div>
+  </div>
+</script>
+
+<style>
+  /* DRAWER CSS */
+  .cart-drawer-container {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999;
+    visibility: hidden; opacity: 0; transition: all 0.3s ease;
+  }
+  .cart-drawer-container.active { visibility: visible; opacity: 1; }
+  
+  .cart-drawer-backdrop {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5);
+  }
+  
+  .cart-drawer {
+    position: absolute; top: 0; right: 0; width: 100%; max-width: 400px; height: 100%;
+    background: #fff; box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+    transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+    display: flex; flex-direction: column;
+  }
+  .cart-drawer-container.active .cart-drawer { transform: translateX(0); }
+
+  /* Header */
+  .drawer-header { padding: 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+  .drawer-title { margin: 0; font-size: 1.2rem; }
+  .drawer-close { background: none; border: none; cursor: pointer; padding: 5px; }
+
+  /* Shipping Bar */
+  .drawer-shipping-bar { padding: 15px 20px; background: #f9f9f9; text-align: center; font-size: 0.9rem; }
+  .shipping-progress-bg { height: 6px; background: #ddd; border-radius: 3px; margin-top: 8px; overflow: hidden; }
+  .shipping-progress-fill { height: 100%; background: #000; transition: width 0.5s ease; }
+
+  /* Items */
+  .drawer-items { flex: 1; overflow-y: auto; padding: 20px; }
+  .drawer-empty { text-align: center; padding-top: 50px; }
+
+  .drawer-item { display: flex; gap: 15px; margin-bottom: 20px; border-bottom: 1px solid #f4f4f4; padding-bottom: 20px; }
+  .item-img img { border-radius: 4px; object-fit: cover; }
+  .item-info { flex: 1; }
+  .item-title { text-decoration: none; color: inherit; font-weight: 600; display: block; margin-bottom: 4px; }
+  .item-variant { font-size: 0.85rem; color: #777; margin-bottom: 4px; }
+  .item-controls { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+  
+  .qty-adjust { display: flex; border: 1px solid #ddd; border-radius: 4px; }
+  .qty-adjust button { background: none; border: none; width: 25px; cursor: pointer; }
+  .qty-adjust span { width: 30px; text-align: center; font-size: 0.9rem; line-height: 25px; }
+  .item-remove { background: none; border: none; font-size: 0.8rem; text-decoration: underline; color: #777; cursor: pointer; }
+
+  /* Footer */
+  .drawer-footer { padding: 20px; border-top: 1px solid #eee; background: #fff; }
+  .summary-row { display: flex; justify-content: space-between; font-weight: bold; font-size: 1.1rem; margin-bottom: 5px; }
+  .tax-note { color: #888; display: block; margin-bottom: 15px; }
+  .btn-checkout { background: #000; color: #fff; border: none; padding: 16px; font-weight: bold; cursor: pointer; border-radius: 4px; width: 100%; }
+  .btn-checkout:hover { opacity: 0.9; }
+
+</style>
+
+<script>
+  // AJAX LOGIC
+  
+  // Öffnen/Schließen Funktionen (Global verfügbar machen)
+  window.openCartDrawer = function() {
+    document.getElementById('cart-drawer').classList.add('active');
+    fetchCart(); // Cart beim Öffnen aktualisieren
+  }
+  
+  window.closeCartDrawer = function() {
+    document.getElementById('cart-drawer').classList.remove('active');
+  }
+
+  // Cart laden
+  function fetchCart() {
+    fetch('/cart.js')
+      .then(res => res.json())
+      .then(cart => {
+        renderDrawer(cart);
+      });
+  }
+
+  // Menge ändern
+  window.changeQty = function(key, qty) {
+    fetch('/cart/change.js', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: key, quantity: qty })
+    })
+    .then(res => res.json())
+    .then(cart => {
+      renderDrawer(cart);
+    });
+  }
+
+  // Render Logik (JSON -> HTML)
+  function renderDrawer(cart) {
+    // 1. Update Counts & Prices
+    document.getElementById('cart-count-drawer').innerText = cart.item_count;
+    
+    // Header Icon Badge auch updaten (falls vorhanden)
+    const headerBadge = document.querySelector('.header-cart-count'); // Annahme: Klasse im Header
+    if(headerBadge) headerBadge.innerText = cart.item_count;
+
+    // 2. Shipping Bar Update
+    const bar = document.getElementById('drawer-shipping-bar');
+    if (bar) {
+      const threshold = parseInt(bar.dataset.threshold);
+      const percent = Math.min((cart.total_price / threshold) * 100, 100);
+      bar.querySelector('.shipping-progress-fill').style.width = percent + '%';
+      
+      const remaining = threshold - cart.total_price;
+      const textEl = bar.querySelector('.shipping-text');
+      if (remaining > 0) {
+        textEl.innerHTML = `Nur noch <strong>${formatMoney(remaining)}</strong> bis zum kostenlosen Versand!`;
+      } else {
+        textEl.innerHTML = `Du hast dir <strong>kostenlosen Versand</strong> verdient! 🎉`;
+      }
+    }
+
+    // 3. Footer Update
+    const footer = document.getElementById('drawer-footer');
+    if (cart.item_count === 0) {
+      footer.style.display = 'none';
+      document.getElementById('drawer-items').innerHTML = '<div class="drawer-empty"><p>Dein Warenkorb ist leer.</p><button onclick="closeCartDrawer()" class="btn-continue">Weiter shoppen</button></div>';
+    } else {
+      footer.style.display = 'block';
+      document.getElementById('cart-total-price').innerText = formatMoney(cart.total_price);
+      
+      // 4. Items Render
+      let html = '';
+      const template = document.getElementById('cart-item-template').innerHTML;
+      
+      cart.items.forEach(item => {
+        let itemHtml = template
+          .replace(/{key}/g, item.key)
+          .replace('{title}', item.product_title)
+          .replace('{url}', item.url)
+          .replace('{variant}', item.variant_title !== null ? item.variant_title : '')
+          .replace('{price}', formatMoney(item.price))
+          .replace('{qty}', item.quantity)
+          .replace('{qty_minus}', item.quantity - 1)
+          .replace('{qty_plus}', item.quantity + 1)
+          .replace('{image}', item.featured_image.url); // Vorsicht: Image URL logic kann komplexer sein
+          
+        html += itemHtml;
+      });
+      document.getElementById('drawer-items').innerHTML = html;
+    }
+  }
+
+  function formatMoney(cents) {
+    return (cents / 100).toFixed(2).replace('.', ',') + ' €'; 
+  }
+
+  // Hook into "Add to Cart" Forms
+  document.addEventListener('submit', function(e) {
+    if (e.target.action && e.target.action.includes('/cart/add')) {
+      e.preventDefault();
+      
+      const formData = new FormData(e.target);
+      fetch('/cart/add.js', {
+        method: 'POST',
+        body: formData
+      })
+      .then(res => res.json())
+      .then(item => {
+        openCartDrawer();
+      })
+      .catch(err => console.error(err));
+    }
+  });
+</script>
 
 {% schema %}
-{ "name": "Cart Drawer", "settings": [] }
+{
+  "name": "Warenkorb Schublade",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_shipping_bar",
+      "label": "Versand-Fortschritt anzeigen",
+      "default": true
+    },
+    {
+      "type": "number",
+      "id": "shipping_threshold",
+      "label": "Betrag für kostenlosen Versand",
+      "default": 50
+    }
+  ]
+}
 {% endschema %}
