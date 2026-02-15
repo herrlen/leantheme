@@ -8,5 +8,74 @@
  * ------------------------------------------------------------
  */
 {
-  "current": {}
+  "current": {
+    "dark_mode_enabled": true,
+    "sections": {
+      "age-verifier": {
+        "type": "age-verifier",
+        "settings": {
+          "enabled": false,
+          "min_age": 18,
+          "cookie_duration": "30",
+          "redirect_url": "",
+          "heading": "Altersverifikation",
+          "subtext": "Du musst mindestens 18 Jahre alt sein, um diese Website zu besuchen. Bitte bestätige dein Alter.",
+          "yes_text": "Ja, ich bin 18+",
+          "no_text": "Nein, ich bin unter 18",
+          "declined_text": "Du musst mindestens 18 Jahre alt sein, um diese Seite zu besuchen.",
+          "redirect_msg": "Du wirst in Kürze weitergeleitet…",
+          "legal_text": "",
+          "show_logo": true,
+          "background_style": "blur",
+          "panel_bg": "#ffffff",
+          "panel_text": "#111111",
+          "accent_color": "#000000",
+          "overlay_color": "rgba(0,0,0,0.7)",
+          "border_radius": 12
+        }
+      },
+      "popup-promo": {
+        "type": "popup-promo",
+        "settings": {
+          "enabled": false,
+          "popup_type": "newsletter",
+          "trigger": "delay",
+          "delay_seconds": 5,
+          "scroll_percent": 50,
+          "repeat_days": 7,
+          "heading": "10% Rabatt sichern!",
+          "text": "<p>Melde dich für unseren Newsletter an und erhalte einen exklusiven Rabattcode.</p>",
+          "discount_code": "",
+          "discount_label": "Dein Code:",
+          "email_placeholder": "E-Mail-Adresse",
+          "submit_text": "Anmelden",
+          "success_text": "Vielen Dank! Dein Rabattcode ist unterwegs.",
+          "privacy_text": "",
+          "button_text": "Jetzt shoppen",
+          "button_link": "",
+          "age_yes_text": "Ja, ich bin über 18",
+          "age_no_text": "Nein, ich bin unter 18",
+          "age_denied_text": "Du musst mindestens 18 Jahre alt sein, um diese Seite zu besuchen.",
+          "cookie_accept_text": "Akzeptieren",
+          "cookie_decline_text": "Nur notwendige",
+          "cookie_link": "",
+          "cookie_link_text": "Datenschutzerklärung",
+          "layout": "modal",
+          "bg_color": "#ffffff",
+          "text_color": "#111111",
+          "accent_color": "#000000",
+          "overlay_color": "rgba(0,0,0,0.5)",
+          "padding_top": 0,
+          "padding_bottom": 0
+        }
+      },
+      "seo-dashboard": {
+        "type": "seo-dashboard",
+        "settings": {
+          "show_for_admins": true
+        }
+      }
+    },
+    "content_for_index": []
+  }
 }
