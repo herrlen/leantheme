@@ -12,33 +12,37 @@
     {% form 'contact' %}
       {%- if form.posted_successfully? -%}
         <div class="form-status form-status-list form__message" tabindex="-1" autofocus>
-          ✅ Danke für deine Nachricht!
+          {{ 'contact.success' | t }}
         </div>
       {%- elsif form.errors -%}
         <div class="form-status form-status-list form__message">
-          ❌ Bitte überprüfe deine Eingaben.
+          {{ 'contact.error' | t }}
         </div>
       {%- endif -%}
 
       <div class="contact-fields">
         <div class="field">
-          <input class="field__input" type="text" name="contact[Name]" id="ContactForm-name" placeholder="Name">
+          <label for="ContactForm-name" class="visually-hidden">{{ 'contact.name' | t }}</label>
+          <input class="field__input" type="text" name="contact[Name]" id="ContactForm-name" placeholder="{{ 'contact.name' | t }}">
         </div>
         <div class="field">
-          <input class="field__input" type="email" name="contact[email]" id="ContactForm-email" placeholder="E-Mail" required>
+          <label for="ContactForm-email" class="visually-hidden">{{ 'contact.email' | t }}</label>
+          <input class="field__input" type="email" name="contact[email]" id="ContactForm-email" placeholder="{{ 'contact.email' | t }}" required>
         </div>
       </div>
       
       <div class="field">
-        <input class="field__input" type="tel" name="contact[phone]" id="ContactForm-phone" placeholder="Telefonnummer">
+        <label for="ContactForm-phone" class="visually-hidden">{{ 'contact.phone' | t }}</label>
+        <input class="field__input" type="tel" name="contact[phone]" id="ContactForm-phone" placeholder="{{ 'contact.phone' | t }}">
       </div>
       
       <div class="field">
-        <textarea class="field__input text-area" name="contact[body]" id="ContactForm-body" placeholder="Deine Nachricht"></textarea>
+        <label for="ContactForm-body" class="visually-hidden">{{ 'contact.message' | t }}</label>
+        <textarea class="field__input text-area" name="contact[body]" id="ContactForm-body" placeholder="{{ 'contact.message' | t }}"></textarea>
       </div>
       
       <div class="contact__button">
-        <button type="submit" class="button">Absenden</button>
+        <button type="submit" class="button">{{ 'contact.submit' | t }}</button>
       </div>
     {% endform %}
   </div>

@@ -1,68 +1,1201 @@
 {% comment %}
-  This section is used in the article template to render the article page, which
-  displays the full content of the blog post and can optionally include a
-  comments section for customers (not shown in this example).
-
-  https://shopify.dev/docs/storefronts/themes/architecture/templates/article
+  Main Article Section — Einzelner Blog-Artikel
+  Features: Featured Image, Lesezeit, Social Share, Autor-Box,
+  Table of Contents (JS-generated), Sticky Sidebar, Kommentare,
+  Prev/Next Navigation, Verwandte Artikel
 {% endcomment %}
 
-{% if article.image %}
-  {{ article.image | image_url: width: 1000 | image_tag }}
-{% endif %}
+{%- liquid
+  assign show_featured_image = section.settings.show_featured_image
+  assign show_date = section.settings.show_date
+  assign show_author = section.settings.show_author
+  assign show_read_time = section.settings.show_read_time
+  assign show_tags = section.settings.show_tags
+  assign show_share = section.settings.show_share
+  assign show_author_box = section.settings.show_author_box
+  assign show_toc = section.settings.show_toc
+  assign show_prev_next = section.settings.show_prev_next
+  assign show_related = section.settings.show_related
+  assign show_comments = section.settings.show_comments
+  assign sidebar_mode = section.settings.sidebar_mode | default: 'none'
 
-<h1>{{ article.title }}</h1>
+  comment
+    Reading time calculation (~200 words/min)
+  endcomment
+  assign word_count = article.content | strip_html | split: ' ' | size
+  assign read_time = word_count | divided_by: 200
+  if read_time < 1
+    assign read_time = 1
+  endif
 
-{% assign date = article.published_at | time_tag: format: 'date' %}
-<p>{{ 'blog.article_metadata_html' | t: date: date, author: article.author }}</p>
+  comment
+    Author bio from metafield (metafield: custom.author_bio / custom.author_image)
+  endcomment
+  assign author_bio = article.metafields.custom.author_bio | default: ''
+  assign author_image = article.metafields.custom.author_image | default: nil
 
-{{ article.content }}
+  comment
+    Prev / Next articles
+  endcomment
+  assign prev_article = nil
+  assign next_article = nil
+  assign found_current = false
+  for a in blog.articles
+    if found_current
+      assign next_article = a
+      break
+    endif
+    if a.id == article.id
+      assign found_current = true
+    else
+      assign prev_article = a
+    endif
+  endfor
+-%}
 
-{% if blog.comments_enabled? %}
-  <h2>{{ 'blog.article_comments' | t }}</h2>
+<article
+  class="article section-{{ section.id }}-padding"
+  id="Article-{{ section.id }}"
+  data-article
+  itemscope
+  itemtype="https://schema.org/BlogPosting"
+>
+  <meta itemprop="datePublished" content="{{ article.published_at | date: '%Y-%m-%dT%H:%M:%S' }}">
+  <meta itemprop="author" content="{{ article.author }}">
 
-  <div id="comments">
-    {% paginate article.comments by 10 %}
-      {% for comment in article.comments %}
-        <div>
-          <p>{{ comment.author }}</p>
-          <p>
-            {{- comment.created_at | time_tag: format: 'date' -}}
-          </p>
-          <p>{{ comment.content }}</p>
+  <div class="page-width">
+
+    {%- render 'breadcrumbs-wrapper' -%}
+
+    {%- comment -%} ===== ARTICLE HEADER ===== {%- endcomment -%}
+    <header class="article__header">
+
+      {%- if show_tags and article.tags.size > 0 -%}
+        <div class="article__tags">
+          {%- for tag in article.tags -%}
+            <a href="{{ blog.url }}/tagged/{{ tag | handle }}" class="article__tag">{{ tag }}</a>
+          {%- endfor -%}
         </div>
-      {% endfor %}
+      {%- endif -%}
 
-      {{ paginate | default_pagination: anchor: 'comments' }}
-    {% endpaginate %}
+      <h1 class="article__title" itemprop="headline">{{ article.title }}</h1>
+
+      <div class="article__meta">
+        {%- if show_date -%}
+          <time class="article__date" datetime="{{ article.published_at | date: '%Y-%m-%d' }}">
+            {{ article.published_at | date: '%d. %B %Y' }}
+          </time>
+        {%- endif -%}
+
+        {%- if show_author and article.author != blank -%}
+          <span class="article__meta-sep" aria-hidden="true">&middot;</span>
+          <span class="article__author-name">{{ article.author }}</span>
+        {%- endif -%}
+
+        {%- if show_read_time -%}
+          <span class="article__meta-sep" aria-hidden="true">&middot;</span>
+          <span class="article__read-time">{{ 'blog.read_time_html' | t: minutes: read_time }}</span>
+        {%- endif -%}
+      </div>
+    </header>
+
+    {%- comment -%} ===== FEATURED IMAGE ===== {%- endcomment -%}
+    {%- if show_featured_image and article.image -%}
+      <figure class="article__featured-image">
+        <img
+          src="{{ article.image | image_url: width: 1400 }}"
+          srcset="{{ article.image | image_url: width: 600 }} 600w,
+                  {{ article.image | image_url: width: 900 }} 900w,
+                  {{ article.image | image_url: width: 1200 }} 1200w,
+                  {{ article.image | image_url: width: 1400 }} 1400w"
+          sizes="(min-width: 990px) 900px, 100vw"
+          alt="{{ article.image.alt | default: article.title | escape }}"
+          class="article__hero-img"
+          width="{{ article.image.width }}"
+          height="{{ article.image.height }}"
+          loading="eager"
+          fetchpriority="high"
+          decoding="async"
+          itemprop="image"
+        >
+      </figure>
+    {%- endif -%}
+
+    {%- comment -%} ===== MAIN LAYOUT (Content + Optional Sidebar) ===== {%- endcomment -%}
+    <div class="article__layout{% if sidebar_mode != 'none' %} article__layout--sidebar{% endif %}">
+
+      {%- comment -%} Content Column {%- endcomment -%}
+      <div class="article__body">
+
+        {%- comment -%} Table of Contents (inline, above content — rendered by JS) {%- endcomment -%}
+        {%- if show_toc and sidebar_mode == 'none' -%}
+          <nav class="article__toc article__toc--inline" data-article-toc aria-label="{{ 'blog.toc' | t }}" hidden>
+            <h2 class="article__toc-title">{{ 'blog.toc' | t }}</h2>
+            <ol class="article__toc-list" data-toc-list></ol>
+          </nav>
+        {%- endif -%}
+
+        {%- comment -%} Article Content {%- endcomment -%}
+        <div class="article__content rte" itemprop="articleBody" data-article-content>
+          {{ article.content }}
+        </div>
+
+        {%- comment -%} ===== Social Share ===== {%- endcomment -%}
+        {%- if show_share -%}
+          {%- assign share_url = shop.url | append: article.url -%}
+          {%- assign share_title = article.title | url_encode -%}
+          <div class="article__share">
+            <span class="article__share-label">{{ 'blog.share_label' | t }}</span>
+            <div class="article__share-buttons">
+              <a
+                href="https://www.facebook.com/sharer/sharer.php?u={{ share_url }}"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="article__share-btn"
+                aria-label="{{ 'blog.share_facebook' | t }}"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+              </a>
+              <a
+                href="https://twitter.com/intent/tweet?url={{ share_url }}&text={{ share_title }}"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="article__share-btn"
+                aria-label="{{ 'blog.share_twitter' | t }}"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+              </a>
+              <a
+                href="https://www.linkedin.com/sharing/share-offsite/?url={{ share_url }}"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="article__share-btn"
+                aria-label="{{ 'blog.share_linkedin' | t }}"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+              </a>
+              <a
+                href="mailto:?subject={{ share_title }}&body={{ share_url }}"
+                class="article__share-btn"
+                aria-label="{{ 'blog.share_email' | t }}"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              </a>
+              <button
+                type="button"
+                class="article__share-btn"
+                data-copy-url="{{ share_url }}"
+                aria-label="{{ 'blog.copy_link' | t }}"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+              </button>
+            </div>
+          </div>
+        {%- endif -%}
+
+        {%- comment -%} ===== Author Box ===== {%- endcomment -%}
+        {%- if show_author_box and article.author != blank -%}
+          <div class="article__author-box">
+            <div class="article__author-avatar">
+              {%- if author_image != blank -%}
+                <img
+                  src="{{ author_image | image_url: width: 120 }}"
+                  alt="{{ article.author | escape }}"
+                  class="article__author-img"
+                  width="60"
+                  height="60"
+                  loading="lazy"
+                  decoding="async"
+                >
+              {%- else -%}
+                <div class="article__author-placeholder">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                </div>
+              {%- endif -%}
+            </div>
+            <div class="article__author-info">
+              <span class="article__author-label">{{ 'blog.written_by' | t }}</span>
+              <span class="article__author-name-lg">{{ article.author }}</span>
+              {%- if author_bio != blank -%}
+                <p class="article__author-bio">{{ author_bio }}</p>
+              {%- endif -%}
+            </div>
+          </div>
+        {%- endif -%}
+
+        {%- comment -%} ===== Prev / Next Navigation ===== {%- endcomment -%}
+        {%- if show_prev_next -%}
+          {%- if prev_article or next_article -%}
+            <nav class="article__nav" aria-label="Artikel-Navigation">
+              {%- if prev_article -%}
+                <a href="{{ prev_article.url }}" class="article__nav-link article__nav-link--prev">
+                  <span class="article__nav-dir">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+                    {{ 'blog.previous_article' | t }}
+                  </span>
+                  <span class="article__nav-title">{{ prev_article.title | truncatewords: 8 }}</span>
+                </a>
+              {%- else -%}
+                <span></span>
+              {%- endif -%}
+
+              {%- if next_article -%}
+                <a href="{{ next_article.url }}" class="article__nav-link article__nav-link--next">
+                  <span class="article__nav-dir">
+                    {{ 'blog.next_article' | t }}
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+                  </span>
+                  <span class="article__nav-title">{{ next_article.title | truncatewords: 8 }}</span>
+                </a>
+              {%- endif -%}
+            </nav>
+          {%- endif -%}
+        {%- endif -%}
+
+        {%- comment -%} ===== Comments ===== {%- endcomment -%}
+        {%- if show_comments and blog.comments_enabled? -%}
+          <div class="article__comments" id="comments">
+            <h2 class="article__comments-title">
+              {{ 'blog.article_comments' | t }}
+              {%- if article.comments_count > 0 -%}
+                <span class="article__comments-count">({{ article.comments_count }})</span>
+              {%- endif -%}
+            </h2>
+
+            {%- paginate article.comments by 10 -%}
+              {%- if article.comments_count > 0 -%}
+                <div class="article__comments-list">
+                  {%- for comment in article.comments -%}
+                    <div class="article__comment">
+                      <div class="article__comment-header">
+                        <span class="article__comment-author">{{ comment.author }}</span>
+                        <time class="article__comment-date" datetime="{{ comment.created_at | date: '%Y-%m-%d' }}">
+                          {{ comment.created_at | date: '%d. %B %Y' }}
+                        </time>
+                      </div>
+                      <div class="article__comment-body">{{ comment.content }}</div>
+                    </div>
+                  {%- endfor -%}
+                </div>
+
+                {%- render 'pagination', paginate: paginate -%}
+              {%- endif -%}
+            {%- endpaginate -%}
+
+            {%- comment -%} Comment Form {%- endcomment -%}
+            {% form 'new_comment', article %}
+              <div class="article__comment-form">
+                <h3 class="article__comment-form-title">{{ 'blog.comment_form_title' | t }}</h3>
+
+                {{ form.errors | default_errors }}
+
+                <div class="article__comment-fields">
+                  <div class="article__field">
+                    <label for="comment-author-{{ section.id }}" class="article__label">{{ 'blog.comment_form_name' | t }}</label>
+                    <input
+                      type="text"
+                      name="comment[author]"
+                      id="comment-author-{{ section.id }}"
+                      class="article__input"
+                      value="{{ form.author }}"
+                      required
+                    >
+                  </div>
+                  <div class="article__field">
+                    <label for="comment-email-{{ section.id }}" class="article__label">{{ 'blog.comment_form_email' | t }}</label>
+                    <input
+                      type="email"
+                      name="comment[email]"
+                      id="comment-email-{{ section.id }}"
+                      class="article__input"
+                      value="{{ form.email }}"
+                      required
+                    >
+                  </div>
+                </div>
+
+                <div class="article__field">
+                  <label for="comment-body-{{ section.id }}" class="article__label">{{ 'blog.comment_form_body' | t }}</label>
+                  <textarea
+                    name="comment[body]"
+                    id="comment-body-{{ section.id }}"
+                    class="article__textarea"
+                    rows="5"
+                    required
+                  >{{ form.body }}</textarea>
+                </div>
+
+                <button type="submit" class="article__submit">{{ 'blog.comment_form_submit' | t }}</button>
+              </div>
+            {% endform %}
+          </div>
+        {%- endif -%}
+      </div>
+
+      {%- comment -%} ===== SIDEBAR ===== {%- endcomment -%}
+      {%- if sidebar_mode != 'none' -%}
+        <aside class="article__sidebar" data-article-sidebar>
+          <div class="article__sidebar-inner" data-sidebar-sticky>
+
+            {%- if sidebar_mode == 'toc' or sidebar_mode == 'both' -%}
+              {%- if show_toc -%}
+                <nav class="article__toc article__toc--sidebar" data-article-toc aria-label="{{ 'blog.toc' | t }}" hidden>
+                  <h3 class="article__toc-title">{{ 'blog.toc' | t }}</h3>
+                  <ol class="article__toc-list" data-toc-list></ol>
+                </nav>
+              {%- endif -%}
+            {%- endif -%}
+
+            {%- if sidebar_mode == 'related' or sidebar_mode == 'both' -%}
+              {%- if blog.articles.size > 1 -%}
+                <div class="article__sidebar-related">
+                  <h3 class="article__sidebar-related-title">{{ 'blog.related_articles' | t }}</h3>
+                  <div class="article__sidebar-related-list">
+                    {%- assign related_count = 0 -%}
+                    {%- for a in blog.articles limit: 4 -%}
+                      {%- if a.id != article.id and related_count < 3 -%}
+                        <a href="{{ a.url }}" class="article__sidebar-related-item">
+                          {%- if a.image -%}
+                            <img
+                              src="{{ a.image | image_url: width: 200 }}"
+                              alt="{{ a.title | escape }}"
+                              class="article__sidebar-related-img"
+                              width="60"
+                              height="60"
+                              loading="lazy"
+                              decoding="async"
+                            >
+                          {%- endif -%}
+                          <div class="article__sidebar-related-info">
+                            <span class="article__sidebar-related-name">{{ a.title | truncatewords: 8 }}</span>
+                            <span class="article__sidebar-related-date">{{ a.published_at | date: '%d. %B %Y' }}</span>
+                          </div>
+                        </a>
+                        {%- assign related_count = related_count | plus: 1 -%}
+                      {%- endif -%}
+                    {%- endfor -%}
+                  </div>
+                </div>
+              {%- endif -%}
+            {%- endif -%}
+
+          </div>
+        </aside>
+      {%- endif -%}
+    </div>
+
+    {%- comment -%} ===== SEO: Verwandte Artikel Links ===== {%- endcomment -%}
+    {%- render 'related-links', context: 'article', related_article: article, related_blog: blog -%}
+
+    {%- comment -%} ===== RELATED ARTICLES (full width, below content) ===== {%- endcomment -%}
+    {%- if show_related -%}
+      {%- assign has_related = false -%}
+      {%- for a in blog.articles limit: 7 -%}
+        {%- if a.id != article.id -%}
+          {%- assign has_related = true -%}
+          {%- break -%}
+        {%- endif -%}
+      {%- endfor -%}
+
+      {%- if has_related -%}
+        <div class="article__related">
+          <h2 class="article__related-title">{{ section.settings.related_heading | default: 'Weitere Artikel' }}</h2>
+          <div class="article__related-grid">
+            {%- assign rcount = 0 -%}
+            {%- for a in blog.articles limit: 7 -%}
+              {%- if a.id != article.id and rcount < 3 -%}
+                {%- render 'article-card',
+                  card_article: a,
+                  index: rcount,
+                  eager_count: 0,
+                  show_excerpt: true,
+                  show_date: true,
+                  show_author: false,
+                  show_tags: true,
+                  show_read_time: true,
+                  image_ratio: 'landscape'
+                -%}
+                {%- assign rcount = rcount | plus: 1 -%}
+              {%- endif -%}
+            {%- endfor -%}
+          </div>
+        </div>
+      {%- endif -%}
+    {%- endif -%}
+
   </div>
+</article>
 
-  {% form 'new_comment', article %}
-    <h2>{{ 'blog.comment_form_title' | t }}</h2>
+{%- comment -%} ===== JAVASCRIPT: TOC, Copy Link, Sticky Sidebar ===== {%- endcomment -%}
+<script>
+  (function() {
+    var section = document.getElementById('Article-{{ section.id }}');
+    if (!section) return;
 
-    {{ form.errors | default_errors }}
+    /* ---- Table of Contents ---- */
+    var content = section.querySelector('[data-article-content]');
+    var tocNavs = section.querySelectorAll('[data-article-toc]');
+    if (content && tocNavs.length > 0) {
+      var headings = content.querySelectorAll('h2, h3');
+      if (headings.length >= 2) {
+        tocNavs.forEach(function(tocNav) {
+          var tocList = tocNav.querySelector('[data-toc-list]');
+          if (!tocList) return;
 
-    <div>
-      <label for="author">{{ 'blog.comment_form_name' | t }}</label>
-      <input type="text" name="comment[author]" id="author" value="{{ form.author }}" required>
-    </div>
+          headings.forEach(function(heading, i) {
+            var id = 'section-' + i;
+            heading.id = id;
 
-    <div>
-      <label for="email">{{ 'blog.comment_form_email' | t }}</label>
-      <input type="email" name="comment[email]" id="email" value="{{ form.email }}" required>
-    </div>
+            var li = document.createElement('li');
+            li.className = 'article__toc-item' + (heading.tagName === 'H3' ? ' article__toc-item--sub' : '');
+            var a = document.createElement('a');
+            a.href = '#' + id;
+            a.className = 'article__toc-link';
+            a.textContent = heading.textContent;
+            a.addEventListener('click', function(e) {
+              e.preventDefault();
+              heading.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              history.replaceState(null, null, '#' + id);
+            });
+            li.appendChild(a);
+            tocList.appendChild(li);
+          });
 
-    <div>
-      <label for="body">{{ 'blog.comment_form_body' | t }}</label>
-      <textarea name="comment[body]" id="body" required>{{ form.body }}</textarea>
-    </div>
+          tocNav.hidden = false;
+        });
 
-    <input type="submit" value="{{ 'blog.comment_form_submit' | t }}">
-  {% endform %}
-{% endif %}
+        /* Active heading highlight via IntersectionObserver */
+        if ('IntersectionObserver' in window) {
+          var tocLinks = section.querySelectorAll('.article__toc-link');
+          var observer = new IntersectionObserver(function(entries) {
+            entries.forEach(function(entry) {
+              if (entry.isIntersecting) {
+                var id = entry.target.id;
+                tocLinks.forEach(function(link) {
+                  link.classList.toggle('article__toc-link--active', link.getAttribute('href') === '#' + id);
+                });
+              }
+            });
+          }, { rootMargin: '-80px 0px -60% 0px', threshold: 0 });
+
+          headings.forEach(function(h) { observer.observe(h); });
+        }
+      }
+    }
+
+    /* ---- Copy URL ---- */
+    var copyBtn = section.querySelector('[data-copy-url]');
+    if (copyBtn) {
+      copyBtn.addEventListener('click', function() {
+        var url = copyBtn.dataset.copyUrl;
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(url).then(function() {
+            copyBtn.classList.add('is-copied');
+            setTimeout(function() { copyBtn.classList.remove('is-copied'); }, 2000);
+          });
+        }
+      });
+    }
+
+    /* ---- Sticky Sidebar ---- */
+    var stickyEl = section.querySelector('[data-sidebar-sticky]');
+    if (stickyEl) {
+      stickyEl.style.position = 'sticky';
+      stickyEl.style.top = '100px';
+    }
+  })();
+
+  /* Theme Editor Support */
+  if (Shopify.designMode) {
+    document.addEventListener('shopify:section:load', function(e) {
+      if (e.detail.sectionId === '{{ section.id }}') {
+        /* Re-init on section reload */
+      }
+    });
+  }
+</script>
+
+<style>
+  /* ===== Section ===== */
+  .section-{{ section.id }}-padding {
+    padding-top: {{ section.settings.padding_top }}px;
+    padding-bottom: {{ section.settings.padding_bottom }}px;
+  }
+  @media (min-width: 750px) {
+    .section-{{ section.id }}-padding {
+      padding-top: {{ section.settings.padding_top | times: 1.5 | round }}px;
+      padding-bottom: {{ section.settings.padding_bottom | times: 1.5 | round }}px;
+    }
+  }
+
+  /* ===== Header ===== */
+  .article__header {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto 32px;
+  }
+
+  .article__tags {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  .article__tag {
+    display: inline-block;
+    padding: 4px 12px;
+    border: 1px solid var(--color-border, #ddd);
+    border-radius: 100px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    text-decoration: none;
+    color: var(--color-text, #333);
+    transition: all 0.2s;
+  }
+  .article__tag:hover {
+    background: var(--color-primary, #000);
+    color: var(--color-primary-contrast, #fff);
+    border-color: var(--color-primary, #000);
+  }
+
+  .article__title {
+    font-size: clamp(1.8rem, 5vw, 2.8rem);
+    font-weight: 700;
+    line-height: 1.15;
+    margin: 0 0 16px;
+  }
+
+  .article__meta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: #888;
+    flex-wrap: wrap;
+  }
+  .article__meta-sep {
+    font-size: 0.6rem;
+  }
+
+  /* ===== Featured Image ===== */
+  .article__featured-image {
+    margin: 0 0 40px;
+    border-radius: var(--border-radius-card, 8px);
+    overflow: hidden;
+  }
+  .article__hero-img {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: cover;
+    aspect-ratio: 21 / 9;
+  }
+  @media (max-width: 749px) {
+    .article__hero-img { aspect-ratio: 16 / 9; }
+  }
+
+  /* ===== Layout with Sidebar ===== */
+  .article__layout {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  .article__layout--sidebar {
+    max-width: none;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+  @media (min-width: 990px) {
+    .article__layout--sidebar {
+      grid-template-columns: 1fr 280px;
+      gap: 48px;
+    }
+  }
+
+  /* ===== Article Content ===== */
+  .article__content {
+    font-size: 1.05rem;
+    line-height: 1.75;
+    color: var(--color-text, #333);
+  }
+  .article__content h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 2em 0 0.75em;
+    line-height: 1.2;
+    scroll-margin-top: 100px;
+  }
+  .article__content h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 1.5em 0 0.5em;
+    line-height: 1.3;
+    scroll-margin-top: 100px;
+  }
+  .article__content p {
+    margin: 0 0 1.25em;
+  }
+  .article__content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin: 1.5em 0;
+  }
+  .article__content blockquote {
+    border-left: 3px solid var(--color-primary, #000);
+    margin: 1.5em 0;
+    padding: 0.5em 0 0.5em 1.25em;
+    font-style: italic;
+    color: #555;
+  }
+  .article__content ul, .article__content ol {
+    margin: 0 0 1.25em;
+    padding-left: 1.5em;
+  }
+  .article__content li {
+    margin-bottom: 0.4em;
+  }
+
+  /* ===== Table of Contents ===== */
+  .article__toc {
+    border: 1px solid var(--color-border, #eee);
+    border-radius: 8px;
+    padding: 20px 24px;
+    background: var(--color-background-secondary, #fafafa);
+  }
+  .article__toc[hidden] { display: none; }
+
+  .article__toc--inline {
+    margin-bottom: 32px;
+  }
+
+  .article__toc-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0 0 12px;
+  }
+
+  .article__toc-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .article__toc-item--sub {
+    padding-left: 16px;
+  }
+
+  .article__toc-link {
+    font-size: 0.85rem;
+    color: var(--color-text, #555);
+    text-decoration: none;
+    line-height: 1.4;
+    transition: color 0.2s;
+    display: block;
+    padding: 2px 0;
+  }
+  .article__toc-link:hover {
+    color: var(--color-primary, #000);
+  }
+  .article__toc-link--active {
+    color: var(--color-primary, #000);
+    font-weight: 600;
+  }
+
+  /* ===== Social Share ===== */
+  .article__share {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 20px 0;
+    margin-top: 32px;
+    border-top: 1px solid var(--color-border, #eee);
+  }
+  .article__share-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #666;
+    white-space: nowrap;
+  }
+  .article__share-buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .article__share-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--color-border, #ddd);
+    border-radius: 50%;
+    color: var(--color-text, #333);
+    text-decoration: none;
+    background: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    padding: 0;
+  }
+  .article__share-btn:hover {
+    background: var(--color-primary, #000);
+    color: var(--color-primary-contrast, #fff);
+    border-color: var(--color-primary, #000);
+  }
+  .article__share-btn.is-copied {
+    background: #16a34a;
+    color: #fff;
+    border-color: #16a34a;
+  }
+
+  /* ===== Author Box ===== */
+  .article__author-box {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    padding: 24px;
+    margin-top: 32px;
+    border: 1px solid var(--color-border, #eee);
+    border-radius: 12px;
+    background: var(--color-background-secondary, #fafafa);
+  }
+  .article__author-avatar {
+    flex-shrink: 0;
+  }
+  .article__author-img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+  .article__author-placeholder {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: #e5e5e5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+  }
+  .article__author-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .article__author-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #999;
+  }
+  .article__author-name-lg {
+    font-size: 1rem;
+    font-weight: 700;
+  }
+  .article__author-bio {
+    font-size: 0.88rem;
+    color: #666;
+    line-height: 1.5;
+    margin: 4px 0 0;
+  }
+
+  /* ===== Prev / Next Navigation ===== */
+  .article__nav {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    padding: 24px 0;
+    margin-top: 32px;
+    border-top: 1px solid var(--color-border, #eee);
+  }
+  .article__nav-link {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 16px;
+    border: 1px solid var(--color-border, #eee);
+    border-radius: 8px;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.2s;
+  }
+  .article__nav-link:hover {
+    border-color: var(--color-primary, #000);
+  }
+  .article__nav-link--next {
+    text-align: right;
+  }
+  .article__nav-dir {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #999;
+  }
+  .article__nav-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+  @media (max-width: 599px) {
+    .article__nav { grid-template-columns: 1fr; }
+  }
+
+  /* ===== Comments ===== */
+  .article__comments {
+    margin-top: 48px;
+    padding-top: 32px;
+    border-top: 1px solid var(--color-border, #eee);
+  }
+  .article__comments-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin: 0 0 24px;
+  }
+  .article__comments-count {
+    font-weight: 400;
+    color: #999;
+  }
+  .article__comments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-bottom: 32px;
+  }
+  .article__comment {
+    padding: 16px;
+    border: 1px solid var(--color-border, #eee);
+    border-radius: 8px;
+  }
+  .article__comment-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .article__comment-author {
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+  .article__comment-date {
+    font-size: 0.78rem;
+    color: #999;
+  }
+  .article__comment-body {
+    font-size: 0.92rem;
+    line-height: 1.6;
+    color: #444;
+  }
+
+  /* Comment Form */
+  .article__comment-form {
+    margin-top: 32px;
+  }
+  .article__comment-form-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 0 0 16px;
+  }
+  .article__comment-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  @media (max-width: 599px) {
+    .article__comment-fields { grid-template-columns: 1fr; }
+  }
+  .article__field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 12px;
+  }
+  .article__label {
+    font-size: 0.82rem;
+    font-weight: 600;
+  }
+  .article__input,
+  .article__textarea {
+    padding: 10px 14px;
+    border: 1px solid var(--color-border, #ddd);
+    border-radius: 6px;
+    font-size: 0.92rem;
+    font-family: inherit;
+    transition: border-color 0.2s;
+    background: var(--color-background, #fff);
+    color: var(--color-text, #333);
+  }
+  .article__input:focus,
+  .article__textarea:focus {
+    border-color: var(--color-primary, #000);
+    box-shadow: 0 0 0 1px var(--color-primary, #000);
+    outline: 2px solid var(--color-primary, #000);
+    outline-offset: -2px;
+  }
+  .article__textarea {
+    resize: vertical;
+    min-height: 100px;
+  }
+  .article__submit {
+    display: inline-block;
+    padding: 12px 28px;
+    background: var(--color-primary, #000);
+    color: var(--color-primary-contrast, #fff);
+    border: none;
+    border-radius: 6px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .article__submit:hover { opacity: 0.85; }
+
+  /* ===== Sidebar ===== */
+  .article__sidebar {
+    display: none;
+  }
+  @media (min-width: 990px) {
+    .article__sidebar {
+      display: block;
+    }
+  }
+  .article__sidebar-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+  }
+
+  .article__sidebar-related-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0 0 16px;
+  }
+  .article__sidebar-related-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .article__sidebar-related-item {
+    display: flex;
+    gap: 10px;
+    text-decoration: none;
+    color: inherit;
+    transition: opacity 0.2s;
+  }
+  .article__sidebar-related-item:hover { opacity: 0.7; }
+  .article__sidebar-related-img {
+    width: 56px;
+    height: 56px;
+    object-fit: cover;
+    border-radius: 6px;
+    flex-shrink: 0;
+  }
+  .article__sidebar-related-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+  .article__sidebar-related-name {
+    font-size: 0.82rem;
+    font-weight: 600;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .article__sidebar-related-date {
+    font-size: 0.72rem;
+    color: #999;
+  }
+
+  /* ===== Related Articles (full width) ===== */
+  .article__related {
+    margin-top: 60px;
+    padding-top: 40px;
+    border-top: 1px solid var(--color-border, #eee);
+  }
+  .article__related-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0 0 24px;
+    text-align: center;
+  }
+  .article__related-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+  @media (min-width: 600px) {
+    .article__related-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (min-width: 990px) {
+    .article__related-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+</style>
 
 {% schema %}
 {
-  "name": "t:general.article",
-  "settings": []
+  "name": "Artikel",
+  "tag": "section",
+  "class": "article-section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Artikel-Layout"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_featured_image",
+      "label": "Featured Image anzeigen",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_date",
+      "label": "Datum anzeigen",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_author",
+      "label": "Autor anzeigen",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_read_time",
+      "label": "Lesezeit anzeigen",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_tags",
+      "label": "Tags anzeigen",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Inhaltsverzeichnis"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_toc",
+      "label": "Table of Contents anzeigen",
+      "default": true,
+      "info": "Wird automatisch aus H2/H3 Überschriften generiert. Mindestens 2 Überschriften nötig."
+    },
+    {
+      "type": "header",
+      "content": "Sidebar"
+    },
+    {
+      "type": "select",
+      "id": "sidebar_mode",
+      "label": "Sidebar-Inhalt",
+      "options": [
+        { "value": "none", "label": "Keine Sidebar" },
+        { "value": "toc", "label": "Inhaltsverzeichnis" },
+        { "value": "related", "label": "Weitere Artikel" },
+        { "value": "both", "label": "TOC + Weitere Artikel" }
+      ],
+      "default": "none",
+      "info": "Sidebar ist nur auf Desktop sichtbar. Bei 'Keine Sidebar' wird TOC inline über dem Artikel angezeigt."
+    },
+    {
+      "type": "header",
+      "content": "Social Sharing"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_share",
+      "label": "Social Share Buttons anzeigen",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Autor-Box"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_author_box",
+      "label": "Autor-Box unter Artikel anzeigen",
+      "default": true,
+      "info": "Autor-Bild und Bio aus Metafield: custom.author_image und custom.author_bio"
+    },
+    {
+      "type": "header",
+      "content": "Navigation & Verwandte Artikel"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_prev_next",
+      "label": "Vorheriger/Nächster Artikel",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_related",
+      "label": "Verwandte Artikel anzeigen",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "related_heading",
+      "label": "Überschrift verwandte Artikel",
+      "default": "Weitere Artikel"
+    },
+    {
+      "type": "header",
+      "content": "Kommentare"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_comments",
+      "label": "Kommentar-System anzeigen",
+      "default": true,
+      "info": "Shopify native Kommentare. Blog-Kommentare müssen im Shopify Admin aktiviert sein."
+    },
+    {
+      "type": "header",
+      "content": "Abstand"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "default": 40,
+      "unit": "px",
+      "label": "Abstand Oben"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "default": 40,
+      "unit": "px",
+      "label": "Abstand Unten"
+    }
+  ]
 }
 {% endschema %}

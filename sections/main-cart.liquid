@@ -6,16 +6,18 @@
 <div class="cart-section section-{{ section.id }}-padding">
   <div class="page-width">
     
-    <h1 class="cart-heading">Dein Warenkorb</h1>
+    <h1 class="cart-heading">{{ 'cart.title' | t }}</h1>
 
     {%- if cart.item_count > 0 -%}
+      {%- render 'free-shipping-meter', context: 'page' -%}
+
       <form action="{{ routes.cart_url }}" method="post" id="cart-form" class="cart-form">
-        
+
         <div class="cart-grid">
           <div class="cart-header hidden-mobile">
-            <span class="col-product">Produkt</span>
-            <span class="col-quantity">Menge</span>
-            <span class="col-total">Gesamt</span>
+            <span class="col-product">{{ 'cart.product' | t }}</span>
+            <span class="col-quantity">{{ 'cart.quantity' | t }}</span>
+            <span class="col-total">{{ 'cart.total' | t }}</span>
           </div>
 
           <div class="cart-items">
@@ -36,17 +38,22 @@
                     {%- unless item.product.has_only_default_variant -%}
                       <p class="item-variant">{{ item.variant.title }}</p>
                     {%- endunless -%}
+                    {%- if settings.preorder_enabled and item.properties._pre_order == 'true' -%}
+                      <span class="item-preorder-label" style="display:inline-block;padding:2px 6px;font-size:0.7rem;font-weight:600;text-transform:uppercase;background:{{ settings.preorder_badge_color | default: '#6366f1' }};color:{{ settings.preorder_badge_text_color | default: '#fff' }};border-radius:2px;margin-top:4px;">
+                        {{ settings.preorder_badge_text | default: 'Vorbestellung' }}
+                      </span>
+                    {%- endif -%}
                     <div class="item-price-mobile">{{ item.final_price | money }}</div>
                   </div>
                 </div>
 
                 <div class="item-quantity">
                   <div class="quantity-wrapper">
-                    <a href="/cart/change?line={{ forloop.index }}&quantity={{ item.quantity | minus: 1 }}" class="qty-btn">-</a>
-                    <input type="number" name="updates[]" value="{{ item.quantity }}" min="0" class="qty-input" readonly>
-                    <a href="/cart/change?line={{ forloop.index }}&quantity={{ item.quantity | plus: 1 }}" class="qty-btn">+</a>
+                    <a href="{{ routes.cart_change_url }}?line={{ forloop.index }}&quantity={{ item.quantity | minus: 1 }}" class="qty-btn" aria-label="{{ 'cart.decrease_quantity' | t }}">-</a>
+                    <input type="number" name="updates[]" value="{{ item.quantity }}" min="0" class="qty-input" readonly aria-label="{{ 'cart.quantity' | t }}: {{ item.product.title }}">
+                    <a href="{{ routes.cart_change_url }}?line={{ forloop.index }}&quantity={{ item.quantity | plus: 1 }}" class="qty-btn" aria-label="{{ 'cart.increase_quantity' | t }}">+</a>
                   </div>
-                  <a href="/cart/change?line={{ forloop.index }}&quantity=0" class="item-remove">Entfernen</a>
+                  <a href="{{ routes.cart_change_url }}?line={{ forloop.index }}&quantity=0" class="item-remove">{{ 'cart.remove' | t }}</a>
                 </div>
 
                 <div class="item-total hidden-mobile">
@@ -58,41 +65,92 @@
           </div>
         </div>
 
+        {%- comment -%} Cross-Sell Recommendations {%- endcomment -%}
+        <div class="cart-page-cross-sell" style="margin-top:32px;">
+          {%- render 'cross-sell-cart', context: 'page', limit: 3, heading: 'cart.also_matching' | t -%}
+        </div>
+
         <div class="cart-footer">
-          <div class="cart-notes">
-             {%- if section.settings.show_note -%}
-               <label for="CartNote">Anmerkung</label>
-               <textarea name="note" id="CartNote">{{ cart.note }}</textarea>
-             {%- endif -%}
+          <div class="cart-notes-wrapper">
+            {%- if section.settings.show_note -%}
+              {%- render 'cart-notes',
+                context: 'page',
+                display_mode: section.settings.cart_note_display,
+                label_text: section.settings.cart_note_label,
+                placeholder: section.settings.cart_note_placeholder,
+                char_limit: section.settings.cart_note_char_limit,
+                show_gift: section.settings.show_gift_option,
+                gift_label: section.settings.gift_option_label
+              -%}
+            {%- endif -%}
           </div>
 
           <div class="cart-summary">
+            {%- comment -%} Store Pickup Selector {%- endcomment -%}
+            {%- if settings.pickup_enabled -%}
+              {%- render 'store-pickup-selector', context: 'page' -%}
+            {%- endif -%}
+
+            {%- if settings.preorder_enabled -%}
+              {%- assign has_preorder_items = false -%}
+              {%- for item in cart.items -%}
+                {%- if item.properties._pre_order == 'true' -%}
+                  {%- assign has_preorder_items = true -%}
+                  {%- break -%}
+                {%- endif -%}
+              {%- endfor -%}
+              {%- if has_preorder_items -%}
+                <div class="cart-preorder-notice" style="padding:10px 12px;margin-bottom:16px;font-size:0.85rem;line-height:1.4;border-radius:4px;background:color-mix(in srgb, {{ settings.preorder_badge_color | default: '#6366f1' }} 8%, #fafafa);border:1px solid {{ settings.preorder_badge_color | default: '#6366f1' }};">
+                  {{ settings.preorder_cart_notice | default: 'Deine Bestellung enthält Vorbestellungen — längere Lieferzeit möglich.' }}
+                </div>
+              {%- endif -%}
+            {%- endif -%}
+
             <div class="subtotal-row">
-              <span class="subtotal-label">Zwischensumme</span>
+              <span class="subtotal-label">{{ 'cart.subtotal' | t }}</span>
               <span class="subtotal-price">{{ cart.total_price | money }}</span>
             </div>
             
-            <p class="shipping-note">Steuern und Versand werden im Checkout berechnet.</p>
+            <p class="shipping-note">{{ 'cart.taxes_and_shipping' | t }}</p>
 
             <div class="discount-wrapper">
-              <input type="text" id="discount-input" name="discount" placeholder="Gutscheincode eingeben">
+              <label for="discount-input" class="visually-hidden">{{ 'cart.discount_placeholder' | t }}</label>
+              <input type="text" id="discount-input" name="discount" placeholder="{{ 'cart.discount_placeholder' | t }}">
             </div>
 
             <button type="submit" name="checkout" class="checkout-btn" id="checkout-btn">
-              Zur Kasse gehen
+              {{ 'cart.checkout' | t }}
             </button>
+
+            {%- if additional_checkout_buttons -%}
+              <div class="additional-checkout-buttons">
+                {{ content_for_additional_checkout_buttons }}
+              </div>
+            {%- endif -%}
           </div>
         </div>
 
       </form>
     {%- else -%}
       <div class="cart-empty">
-        <p>Dein Warenkorb ist noch leer.</p>
-        <a href="{{ routes.all_products_collection_url }}" class="button-primary">Jetzt einkaufen</a>
+        <p>{{ 'cart.empty' | t }}</p>
+        <a href="{{ routes.all_products_collection_url }}" class="button-primary">{{ 'cart.shop_now' | t }}</a>
       </div>
     {%- endif -%}
   </div>
 </div>
+
+{%- if section.settings.show_note -%}
+  <script src="{{ 'cart-notes.js' | asset_url }}" defer="defer"></script>
+{%- endif -%}
+
+{%- if settings.shipping_meter_enabled -%}
+  <script src="{{ 'free-shipping-meter.js' | asset_url }}" defer="defer"></script>
+{%- endif -%}
+
+{%- if settings.pickup_enabled -%}
+  <script src="{{ 'store-pickup.js' | asset_url }}" defer="defer"></script>
+{%- endif -%}
 
 <script>
   document.getElementById('checkout-btn')?.addEventListener('click', function(e) {
@@ -154,17 +212,67 @@
   .cart-empty { text-align: center; padding: 60px 0; }
   .cart-empty p { font-size: 1.5rem; margin-bottom: 30px; }
   .button-primary { background: #000; color: #fff; padding: 12px 30px; text-decoration: none; border-radius: 4px; }
+  .additional-checkout-buttons { margin-top: 15px; }
+  .additional-checkout-buttons .shopify-payment-button__button { border-radius: 4px !important; min-height: 48px; }
 </style>
 
 {% schema %}
 {
-  "name": "Warenkorb",
+  "name": "t:sections.main-cart.name",
   "settings": [
+    {
+      "type": "header",
+      "content": "Bestellnotiz"
+    },
     {
       "type": "checkbox",
       "id": "show_note",
       "label": "Notizfeld anzeigen",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "cart_note_display",
+      "label": "Darstellung",
+      "options": [
+        { "value": "visible", "label": "Immer sichtbar" },
+        { "value": "accordion", "label": "Aufklappbar (Accordion)" }
+      ],
+      "default": "visible"
+    },
+    {
+      "type": "text",
+      "id": "cart_note_label",
+      "label": "Label Text",
+      "default": "Anmerkungen zur Bestellung"
+    },
+    {
+      "type": "text",
+      "id": "cart_note_placeholder",
+      "label": "Placeholder Text",
+      "default": "Besondere Wünsche, Lieferanweisungen..."
+    },
+    {
+      "type": "range",
+      "id": "cart_note_char_limit",
+      "min": 0,
+      "max": 500,
+      "step": 10,
+      "label": "Zeichenlimit",
+      "default": 250,
+      "info": "0 = kein Limit"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_gift_option",
+      "label": "Geschenkoption anzeigen",
       "default": false
+    },
+    {
+      "type": "text",
+      "id": "gift_option_label",
+      "label": "Geschenkoption Label",
+      "default": "Als Geschenk verpacken"
     }
   ]
 }

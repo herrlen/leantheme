@@ -6,7 +6,27 @@
   - UX: Hover-Bildwechsel, Sale-Badges, Smart Pricing
 {% endcomment %}
 
-<div class="collection-snap section-{{ section.id }}-padding">
+{%- liquid
+  assign fc_has_video = false
+  if section.settings.video_bg_enabled
+    if section.settings.video_bg != blank or section.settings.video_bg_url != blank
+      assign fc_has_video = true
+    endif
+  endif
+-%}
+
+<div class="collection-snap section-{{ section.id }}-padding{% if fc_has_video %} collection-snap--has-video{% endif %}">
+  {%- if fc_has_video -%}
+    {%- render 'video-background',
+      video_mp4: section.settings.video_bg,
+      video_url: section.settings.video_bg_url,
+      fallback_image: section.settings.video_bg_fallback,
+      overlay_color: section.settings.video_bg_overlay_color,
+      overlay_opacity: section.settings.video_bg_overlay_opacity,
+      mobile_video: section.settings.video_bg_mobile,
+      section_id: section.id
+    -%}
+  {%- endif -%}
   <div class="page-width">
     
     {%- if section.settings.title != blank -%}
@@ -32,21 +52,30 @@
               <a href="{{ product.url }}" class="product-link">
                 <div class="product-image-wrapper ratio-{{ section.settings.image_ratio }}">
                   {%- if product.featured_media -%}
-                    <img
-                      src="{{ product.featured_media | image_url: width: 600 }}"
-                      alt="{{ product.featured_media.alt | escape }}"
-                      width="{{ product.featured_media.width }}"
-                      height="{{ product.featured_media.height }}"
-                      loading="lazy"
-                      class="product-img primary"
-                    >
+                    {%- render 'image-lazy',
+                      image: product.featured_media,
+                      index: forloop.index,
+                      eager_count: 4,
+                      sizes: '(min-width: 1200px) 23vw, (min-width: 900px) 30vw, (min-width: 600px) 45vw, 70vw',
+                      widths: '300,400,500,600',
+                      class: 'product-img primary',
+                      wrapper: false,
+                      context: 'product',
+                      product: product,
+                      position: 1
+                    -%}
                     {%- if product.media[1] != blank and section.settings.show_secondary_image -%}
-                      <img
-                        src="{{ product.media[1] | image_url: width: 600 }}"
-                        alt="{{ product.media[1].alt | escape }}"
-                        loading="lazy"
-                        class="product-img secondary"
-                      >
+                      {%- render 'image-lazy',
+                        image: product.media[1],
+                        lazy: true,
+                        sizes: '(min-width: 1200px) 23vw, (min-width: 900px) 30vw, (min-width: 600px) 45vw, 70vw',
+                        widths: '300,400,500,600',
+                        class: 'product-img secondary',
+                        wrapper: false,
+                        context: 'product',
+                        product: product,
+                        position: 2
+                      -%}
                     {%- endif -%}
                   {%- else -%}
                     {{ 'product-1' | placeholder_svg_tag: 'product-img placeholder' }}
@@ -60,6 +89,16 @@
                         <span class="badge badge--sale">Sale</span>
                       {%- endif -%}
                     </div>
+                  {%- endif -%}
+
+                  {%- if section.settings.show_quick_buy -%}
+                    {% render 'quick-buy-button',
+                      product: product,
+                      button_style: section.settings.quick_buy_style,
+                      button_text: section.settings.quick_buy_text,
+                      show_quick_view: section.settings.show_quick_view,
+                      position: 'overlay'
+                    %}
                   {%- endif -%}
                 </div>
 
@@ -106,6 +145,15 @@
     padding-top: {{ section.settings.padding_top }}px;
     padding-bottom: {{ section.settings.padding_bottom }}px;
     background-color: {{ section.settings.bg_color }};
+  }
+
+  .collection-snap--has-video {
+    position: relative;
+    overflow: hidden;
+  }
+  .collection-snap--has-video .page-width {
+    position: relative;
+    z-index: 4;
   }
 
   .page-width { max-width: 1300px; margin: 0 auto; padding: 0 20px; }
@@ -289,6 +337,40 @@
     },
     {
       "type": "header",
+      "content": "Quick Buy"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_quick_buy",
+      "label": "Quick Buy Button anzeigen",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "quick_buy_style",
+      "label": "Button Style",
+      "options": [
+        { "value": "icon", "label": "Nur Icon" },
+        { "value": "text", "label": "Nur Text" },
+        { "value": "text_and_icon", "label": "Icon + Text" }
+      ],
+      "default": "icon"
+    },
+    {
+      "type": "text",
+      "id": "quick_buy_text",
+      "label": "Button Text",
+      "default": "Schnellkauf"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_quick_view",
+      "label": "t:sections.featured-collection.settings.show_quick_view.label",
+      "default": true,
+      "info": "t:sections.featured-collection.settings.show_quick_view.info"
+    },
+    {
+      "type": "header",
       "content": "Link"
     },
     {
@@ -302,6 +384,53 @@
       "id": "view_all_label",
       "label": "Link Text",
       "default": "Alle ansehen"
+    },
+    {
+      "type": "header",
+      "content": "Video-Hintergrund"
+    },
+    {
+      "type": "checkbox",
+      "id": "video_bg_enabled",
+      "label": "Video-Hintergrund aktivieren",
+      "default": false
+    },
+    {
+      "type": "video",
+      "id": "video_bg",
+      "label": "Video (MP4 Upload)"
+    },
+    {
+      "type": "text",
+      "id": "video_bg_url",
+      "label": "Video URL (YouTube / Vimeo)"
+    },
+    {
+      "type": "image_picker",
+      "id": "video_bg_fallback",
+      "label": "Video Fallback-Bild"
+    },
+    {
+      "type": "checkbox",
+      "id": "video_bg_mobile",
+      "label": "Video auch auf Mobile",
+      "default": false
+    },
+    {
+      "type": "color",
+      "id": "video_bg_overlay_color",
+      "label": "Video Overlay-Farbe",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "video_bg_overlay_opacity",
+      "min": 0,
+      "max": 90,
+      "step": 5,
+      "unit": "%",
+      "label": "Video Overlay-Stärke",
+      "default": 40
     },
     {
       "type": "header",

@@ -11,7 +11,15 @@
   "sections": {
     "main": {
       "type": "main-cart",
-      "settings": {}
+      "settings": {
+        "show_note": true,
+        "cart_note_display": "visible",
+        "cart_note_label": "Order Notes",
+        "cart_note_placeholder": "Special requests, delivery instructions...",
+        "cart_note_char_limit": 250,
+        "show_gift_option": true,
+        "gift_option_label": "Wrap as a gift"
+      }
     }
   },
   "order": [

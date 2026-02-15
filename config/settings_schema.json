@@ -1,24 +1,1501 @@
 [
   {
     "name": "theme_info",
-    "theme_name": "leantheme",
+    "theme_name": "Lean Theme",
     "theme_author": "Len Suh",
     "theme_version": "1.0.0",
     "theme_documentation_url": "https://leantheme.de",
     "theme_support_url": "https://leantheme.de/support"
   },
   {
-    "name": "t:general.typography",
+    "name": "Theme Presets",
     "settings": [
       {
         "type": "header",
-        "content": "t:general.fonts"
+        "content": "Design-Preset"
+      },
+      {
+        "type": "paragraph",
+        "content": "Wähle ein vordefiniertes Design als Startpunkt. Alle Farben, Button-Styles und Abstände werden automatisch angepasst. Du kannst danach einzelne Werte im Bereich 'Farben & Buttons' überschreiben, indem du das Preset auf 'Eigenes Design' umstellst."
+      },
+      {
+        "type": "select",
+        "id": "theme_preset",
+        "label": "Design-Preset",
+        "options": [
+          { "value": "none", "label": "Eigenes Design (Custom)" },
+          { "value": "minimal", "label": "Minimal" },
+          { "value": "bold", "label": "Bold" },
+          { "value": "elegant", "label": "Elegant" },
+          { "value": "playful", "label": "Playful" },
+          { "value": "dark", "label": "Dark" },
+          { "value": "nature", "label": "Nature" }
+        ],
+        "default": "none"
+      },
+      {
+        "type": "header",
+        "content": "Preset-Beschreibungen"
+      },
+      {
+        "type": "paragraph",
+        "content": "Minimal — Weiß, viel Whitespace, klare Linien, kein Border-Radius. Empfohlene Fonts: Work Sans, Inter, Helvetica Neue."
+      },
+      {
+        "type": "paragraph",
+        "content": "Bold — Kräftige Farben (Rose/Amber), starke Kontraste, große Headlines. Empfohlene Fonts: Oswald, Montserrat, Roboto."
+      },
+      {
+        "type": "paragraph",
+        "content": "Elegant — Gedeckte Erdtöne, Gold-Akzente, feiner Border-Radius. Empfohlene Fonts: Playfair Display, Lora, Cormorant Garamond."
+      },
+      {
+        "type": "paragraph",
+        "content": "Playful — Violett/Cyan-Akzente, voll abgerundete Buttons, lebendig. Empfohlene Fonts: Nunito, Quicksand, Poppins."
+      },
+      {
+        "type": "paragraph",
+        "content": "Dark — Dunkler Hintergrund (#09090b), helle Texte, Indigo-Akzent. Empfohlene Fonts: Inter, DM Sans, Space Grotesk."
+      },
+      {
+        "type": "paragraph",
+        "content": "Nature — Grüntöne, warmes Weiß, organische Rundungen. Empfohlene Fonts: Libre Baskerville, Source Sans Pro, Merriweather."
+      }
+    ]
+  },
+  {
+    "name": "Farben & Buttons",
+    "settings": [
+      {
+        "type": "paragraph",
+        "content": "Diese Einstellungen werden nur im Modus 'Eigenes Design (Custom)' verwendet. Bei aktiven Presets werden die Preset-Farben angewendet."
+      },
+      {
+        "type": "header",
+        "content": "Hauptfarben"
+      },
+      {
+        "type": "color",
+        "id": "color_primary",
+        "label": "Primärfarbe",
+        "default": "#000000",
+        "info": "Hauptfarbe für Links, Buttons und Akzente."
+      },
+      {
+        "type": "color",
+        "id": "color_secondary",
+        "label": "Sekundärfarbe",
+        "default": "#666666",
+        "info": "Für sekundäre Elemente und dezente Hervorhebungen."
+      },
+      {
+        "type": "color",
+        "id": "color_accent",
+        "label": "Akzentfarbe",
+        "default": "#000000",
+        "info": "Für besondere Hervorhebungen und CTAs."
+      },
+      {
+        "type": "header",
+        "content": "Hintergrund"
+      },
+      {
+        "type": "color",
+        "id": "color_background",
+        "label": "Hintergrund",
+        "default": "#ffffff"
+      },
+      {
+        "type": "color",
+        "id": "color_background_secondary",
+        "label": "Hintergrund Sekundär",
+        "default": "#f5f5f5",
+        "info": "Für abgesetzte Bereiche, Karten und Alternating Sections."
+      },
+      {
+        "type": "header",
+        "content": "Text"
+      },
+      {
+        "type": "color",
+        "id": "color_text",
+        "label": "Textfarbe",
+        "default": "#333333"
+      },
+      {
+        "type": "color",
+        "id": "color_text_secondary",
+        "label": "Textfarbe Sekundär",
+        "default": "#666666",
+        "info": "Für Untertitel, Meta-Informationen, Placeholder."
+      },
+      {
+        "type": "header",
+        "content": "UI-Farben"
+      },
+      {
+        "type": "color",
+        "id": "color_border",
+        "label": "Rahmenfarbe",
+        "default": "#e5e5e5"
+      },
+      {
+        "type": "color",
+        "id": "color_success",
+        "label": "Erfolg",
+        "default": "#16a34a"
+      },
+      {
+        "type": "color",
+        "id": "color_error",
+        "label": "Fehler",
+        "default": "#dc2626"
+      },
+      {
+        "type": "color",
+        "id": "color_sale",
+        "label": "Sale / Reduziert",
+        "default": "#dc2626"
+      },
+      {
+        "type": "header",
+        "content": "Buttons — Primär"
+      },
+      {
+        "type": "color",
+        "id": "color_button_primary_bg",
+        "label": "Hintergrund",
+        "default": "#000000"
+      },
+      {
+        "type": "color",
+        "id": "color_button_primary_text",
+        "label": "Textfarbe",
+        "default": "#ffffff"
+      },
+      {
+        "type": "header",
+        "content": "Buttons — Sekundär"
+      },
+      {
+        "type": "color",
+        "id": "color_button_secondary_bg",
+        "label": "Hintergrund",
+        "default": "#ffffff",
+        "info": "Für transparente Buttons: Gleiche Farbe wie Seiten-Hintergrund wählen."
+      },
+      {
+        "type": "color",
+        "id": "color_button_secondary_text",
+        "label": "Textfarbe",
+        "default": "#000000"
+      },
+      {
+        "type": "color",
+        "id": "color_button_secondary_border",
+        "label": "Rahmenfarbe",
+        "default": "#000000"
+      },
+      {
+        "type": "header",
+        "content": "Button-Style"
+      },
+      {
+        "type": "range",
+        "id": "button_border_radius",
+        "min": 0,
+        "max": 40,
+        "step": 1,
+        "unit": "px",
+        "label": "Button Border-Radius",
+        "default": 4,
+        "info": "0 = eckig, 20+ = pill-förmig."
+      },
+      {
+        "type": "header",
+        "content": "Abstände"
+      },
+      {
+        "type": "range",
+        "id": "spacing_sections",
+        "min": 20,
+        "max": 120,
+        "step": 5,
+        "unit": "px",
+        "label": "Section-Abstand",
+        "default": 60,
+        "info": "Vertikaler Abstand zwischen den Sektionen."
+      },
+      {
+        "type": "range",
+        "id": "input_border_radius",
+        "min": 0,
+        "max": 10,
+        "step": 1,
+        "unit": "px",
+        "label": "Input Border-Radius",
+        "default": 4
+      }
+    ]
+  },
+  {
+    "name": "SEO",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Meta Description"
+      },
+      {
+        "type": "paragraph",
+        "content": "Das Theme generiert automatisch Meta Descriptions basierend auf dem Seiteninhalt, wenn keine manuelle Description gesetzt ist."
+      },
+      {
+        "type": "text",
+        "id": "seo_meta_suffix",
+        "label": "Meta Description Suffix",
+        "info": "Wird an alle Meta Descriptions angehängt, wenn Platz vorhanden ist (z.B. ' | Dein Shopname')",
+        "placeholder": " | Shopname"
+      },
+      {
+        "type": "textarea",
+        "id": "seo_default_description",
+        "label": "Standard Meta Description",
+        "info": "Fallback-Description für Seiten ohne eigenen Inhalt (max. 160 Zeichen)",
+        "placeholder": "Willkommen in unserem Online-Shop. Entdecke unser Sortiment."
+      },
+      {
+        "type": "header",
+        "content": "Structured Data (Schema.org)"
+      },
+      {
+        "type": "text",
+        "id": "schema_shipping_cost",
+        "label": "Standard Versandkosten",
+        "info": "Für Product Schema (z.B. 4.95). Leer lassen um auszublenden."
+      },
+      {
+        "type": "text",
+        "id": "schema_shipping_country",
+        "label": "Versandland",
+        "default": "DE",
+        "info": "ISO Ländercode (z.B. DE, AT, CH)"
+      },
+      {
+        "type": "range",
+        "id": "schema_handling_days",
+        "min": 0,
+        "max": 14,
+        "step": 1,
+        "unit": "d",
+        "label": "Bearbeitungszeit (max)",
+        "default": 2,
+        "info": "Tage bis zur Übergabe an den Versanddienstleister"
+      },
+      {
+        "type": "range",
+        "id": "schema_transit_min_days",
+        "min": 1,
+        "max": 14,
+        "step": 1,
+        "unit": "d",
+        "label": "Lieferzeit (min)",
+        "default": 1
+      },
+      {
+        "type": "range",
+        "id": "schema_transit_max_days",
+        "min": 1,
+        "max": 30,
+        "step": 1,
+        "unit": "d",
+        "label": "Lieferzeit (max)",
+        "default": 3
+      },
+      {
+        "type": "header",
+        "content": "Canonical URLs"
+      },
+      {
+        "type": "select",
+        "id": "seo_canonical_pagination",
+        "label": "Canonical für Pagination",
+        "options": [
+          {
+            "value": "page_1",
+            "label": "Immer auf Seite 1 verweisen"
+          },
+          {
+            "value": "self",
+            "label": "Self-referencing (aktuelle Seite)"
+          }
+        ],
+        "default": "page_1",
+        "info": "Bestimmt, wohin paginierte Seiten (Seite 2, 3...) als Canonical verweisen."
+      },
+      {
+        "type": "select",
+        "id": "seo_canonical_variants",
+        "label": "Canonical für Varianten",
+        "options": [
+          {
+            "value": "main_product",
+            "label": "Immer Haupt-Produkt-URL"
+          },
+          {
+            "value": "variant_url",
+            "label": "Varianten-spezifische URL"
+          }
+        ],
+        "default": "main_product",
+        "info": "Bestimmt, ob Produkt-Varianten eigene Canonical URLs haben."
+      },
+      {
+        "type": "checkbox",
+        "id": "seo_enable_prev_next",
+        "label": "Prev/Next Links aktivieren",
+        "default": true,
+        "info": "Fügt rel=\"prev\" und rel=\"next\" für paginierte Seiten hinzu."
+      },
+      {
+        "type": "header",
+        "content": "Hreflang (Internationale SEO)"
+      },
+      {
+        "type": "checkbox",
+        "id": "seo_enable_hreflang",
+        "label": "Hreflang Tags aktivieren",
+        "default": true,
+        "info": "Generiert automatisch hreflang Tags für alle aktiven Sprachen und Märkte."
+      },
+      {
+        "type": "select",
+        "id": "seo_hreflang_format",
+        "label": "Hreflang Format",
+        "options": [
+          {
+            "value": "language",
+            "label": "Nur Sprache (de, en, fr)"
+          },
+          {
+            "value": "language_region",
+            "label": "Sprache + Region (de-DE, en-US)"
+          }
+        ],
+        "default": "language_region",
+        "info": "Bestimmt das Format der hreflang-Codes."
+      },
+      {
+        "type": "checkbox",
+        "id": "seo_hreflang_markets",
+        "label": "Markt-spezifische URLs",
+        "default": true,
+        "info": "Generiert separate hreflang Tags für jeden Markt (z.B. de-DE, de-AT)."
+      },
+      {
+        "type": "header",
+        "content": "Social Sharing"
+      },
+      {
+        "type": "image_picker",
+        "id": "social_share_image",
+        "label": "Standard Share-Bild",
+        "info": "Fallback-Bild für Social Sharing (empfohlen: 1200x630px). Wird verwendet, wenn kein spezifisches Bild verfügbar ist."
+      },
+      {
+        "type": "text",
+        "id": "social_twitter_handle",
+        "label": "Twitter/X Handle",
+        "info": "Dein Twitter/X Benutzername (z.B. @deinshop)",
+        "placeholder": "@deinshop"
+      },
+      {
+        "type": "text",
+        "id": "social_facebook_app_id",
+        "label": "Facebook App ID",
+        "info": "Optional: Für erweiterte Facebook-Funktionen und Insights"
+      },
+      {
+        "type": "header",
+        "content": "Bild ALT-Texte"
+      },
+      {
+        "type": "checkbox",
+        "id": "seo_auto_alt_enabled",
+        "label": "Auto-ALT aktivieren",
+        "default": true,
+        "info": "Generiert automatisch ALT-Texte für Bilder ohne manuellen ALT-Text."
+      },
+      {
+        "type": "text",
+        "id": "seo_alt_prefix",
+        "label": "ALT-Text Prefix",
+        "info": "Optionaler Prefix für alle Auto-ALT-Texte (z.B. Shopname)"
+      }
+    ]
+  },
+  {
+    "name": "Breadcrumbs",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Breadcrumb Navigation"
+      },
+      {
+        "type": "checkbox",
+        "id": "breadcrumbs_enabled",
+        "label": "Breadcrumbs aktivieren",
+        "default": true,
+        "info": "Zeigt Breadcrumb-Navigation auf Produkt-, Collection-, Blog-, Artikel- und Seiten-Templates."
+      },
+      {
+        "type": "checkbox",
+        "id": "breadcrumbs_schema_enabled",
+        "label": "Schema Markup aktivieren",
+        "default": true,
+        "info": "Generiert JSON-LD BreadcrumbList Schema für Suchmaschinen."
+      },
+      {
+        "type": "header",
+        "content": "Darstellung"
+      },
+      {
+        "type": "select",
+        "id": "breadcrumbs_separator",
+        "label": "Trennzeichen",
+        "options": [
+          { "value": "/", "label": "Schrägstrich (/)" },
+          { "value": "›", "label": "Pfeil (›)" },
+          { "value": "→", "label": "Pfeil (→)" },
+          { "value": "|", "label": "Strich (|)" },
+          { "value": "·", "label": "Punkt (·)" }
+        ],
+        "default": "›"
+      },
+      {
+        "type": "checkbox",
+        "id": "breadcrumbs_home_icon",
+        "label": "Home-Icon statt Text",
+        "default": false,
+        "info": "Zeigt ein Haus-Icon anstelle des Home-Textes."
+      },
+      {
+        "type": "text",
+        "id": "breadcrumbs_home_text",
+        "label": "Home-Text",
+        "default": "Home",
+        "info": "Text für den ersten Breadcrumb-Link. Nur wenn Home-Icon deaktiviert."
+      }
+    ]
+  },
+  {
+    "name": "Swatches",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Swatch Darstellung"
+      },
+      {
+        "type": "select",
+        "id": "swatch_style",
+        "label": "Swatch Form",
+        "options": [
+          { "value": "circle", "label": "Rund" },
+          { "value": "square", "label": "Quadratisch" },
+          { "value": "rounded", "label": "Abgerundet" }
+        ],
+        "default": "circle"
+      },
+      {
+        "type": "range",
+        "id": "swatch_size",
+        "min": 24,
+        "max": 48,
+        "step": 2,
+        "unit": "px",
+        "label": "Swatch Größe",
+        "default": 32
+      },
+      {
+        "type": "select",
+        "id": "swatch_soldout_style",
+        "label": "Ausverkauft-Darstellung",
+        "options": [
+          { "value": "strikethrough", "label": "Durchgestrichen" },
+          { "value": "faded", "label": "Verblasst" },
+          { "value": "hidden", "label": "Versteckt" }
+        ],
+        "default": "strikethrough",
+        "info": "Wie ausverkaufte Farben/Varianten dargestellt werden."
+      },
+      {
+        "type": "checkbox",
+        "id": "swatch_show_border",
+        "label": "Rahmen für helle Farben",
+        "default": true,
+        "info": "Zeigt einen Rahmen bei hellen Swatches (Weiß, Beige, etc.)."
+      },
+      {
+        "type": "checkbox",
+        "id": "swatch_tooltip",
+        "label": "Tooltip aktivieren",
+        "default": true,
+        "info": "Zeigt den Farbnamen als Tooltip bei Hover."
+      },
+      {
+        "type": "checkbox",
+        "id": "swatch_show_label",
+        "label": "Farbname unter Swatch anzeigen",
+        "default": true,
+        "info": "Zeigt den Farbnamen als Text unterhalb des Swatches."
+      },
+      {
+        "type": "header",
+        "content": "Image Swatches"
+      },
+      {
+        "type": "paragraph",
+        "content": "Bilder als Swatches: Lade Bilder unter Dateien hoch als swatch-[handle].png (z.B. swatch-schwarz.png). Fallback auf Farb-Mapping wenn kein Bild vorhanden."
+      }
+    ]
+  },
+  {
+    "name": "Collection Nesting",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Sub-Collection System"
+      },
+      {
+        "type": "select",
+        "id": "collection_nesting_method",
+        "label": "Nesting Methode",
+        "options": [
+          { "value": "menu", "label": "Menü-basiert (Linklist)" },
+          { "value": "metafield", "label": "Metafield-basiert" },
+          { "value": "handle_prefix", "label": "Handle-Prefix (automatisch)" }
+        ],
+        "default": "menu",
+        "info": "Menü: Hierarchie über Navigation-Menü. Metafield: Über custom.child_collections / custom.parent_collection. Handle-Prefix: Automatisch über Handle-Struktur (z.B. shoes → shoes-sneakers)."
+      },
+      {
+        "type": "text",
+        "id": "collection_nav_menu",
+        "label": "Collection Navigations-Menü",
+        "default": "collections",
+        "info": "Handle des Navigationsmenüs für die Collection-Hierarchie (nur bei Menü-Methode)."
+      },
+      {
+        "type": "header",
+        "content": "Darstellung"
+      },
+      {
+        "type": "checkbox",
+        "id": "collection_show_count",
+        "label": "Produktanzahl anzeigen",
+        "default": true,
+        "info": "Zeigt die Produktanzahl neben Sub-Collections."
+      },
+      {
+        "type": "checkbox",
+        "id": "collection_hide_empty",
+        "label": "Leere Collections ausblenden",
+        "default": false,
+        "info": "Versteckt Sub-Collections ohne Produkte."
+      }
+    ]
+  },
+  {
+    "name": "Produkt-Badges",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Allgemein"
+      },
+      {
+        "type": "select",
+        "id": "badge_position",
+        "label": "Badge Position",
+        "options": [
+          { "value": "top_left", "label": "Oben links" },
+          { "value": "top_right", "label": "Oben rechts" },
+          { "value": "bottom_left", "label": "Unten links" },
+          { "value": "bottom_right", "label": "Unten rechts" }
+        ],
+        "default": "top_left"
+      },
+      {
+        "type": "select",
+        "id": "badge_shape",
+        "label": "Badge Form",
+        "options": [
+          { "value": "pill", "label": "Pill (abgerundet)" },
+          { "value": "rect", "label": "Rechteck" },
+          { "value": "rounded", "label": "Leicht abgerundet" }
+        ],
+        "default": "pill"
+      },
+      {
+        "type": "header",
+        "content": "Sale Badge"
+      },
+      {
+        "type": "checkbox",
+        "id": "badge_sale_enabled",
+        "label": "Sale Badge aktivieren",
+        "default": true
+      },
+      {
+        "type": "select",
+        "id": "badge_sale_style",
+        "label": "Sale Anzeige",
+        "options": [
+          { "value": "text", "label": "Text (z.B. Sale)" },
+          { "value": "percent", "label": "Prozent (z.B. -20%)" }
+        ],
+        "default": "percent"
+      },
+      {
+        "type": "text",
+        "id": "badge_sale_text",
+        "label": "Sale Text",
+        "default": "Sale",
+        "info": "Nur bei Text-Modus"
+      },
+      {
+        "type": "color",
+        "id": "badge_sale_color",
+        "label": "Sale Farbe",
+        "default": "#dc2626"
+      },
+      {
+        "type": "header",
+        "content": "Neu Badge"
+      },
+      {
+        "type": "checkbox",
+        "id": "badge_new_enabled",
+        "label": "Neu Badge aktivieren",
+        "default": true
+      },
+      {
+        "type": "range",
+        "id": "badge_new_days",
+        "min": 7,
+        "max": 90,
+        "step": 1,
+        "default": 30,
+        "unit": "d",
+        "label": "Neu-Zeitraum (Tage)",
+        "info": "Produkte die innerhalb dieser Tage erstellt wurden erhalten das Badge."
+      },
+      {
+        "type": "text",
+        "id": "badge_new_text",
+        "label": "Neu Text",
+        "default": "Neu"
+      },
+      {
+        "type": "color",
+        "id": "badge_new_color",
+        "label": "Neu Farbe",
+        "default": "#2563eb"
+      },
+      {
+        "type": "header",
+        "content": "Ausverkauft Badge"
+      },
+      {
+        "type": "checkbox",
+        "id": "badge_soldout_enabled",
+        "label": "Ausverkauft Badge aktivieren",
+        "default": true
+      },
+      {
+        "type": "text",
+        "id": "badge_soldout_text",
+        "label": "Ausverkauft Text",
+        "default": "Ausverkauft"
+      },
+      {
+        "type": "color",
+        "id": "badge_soldout_color",
+        "label": "Ausverkauft Farbe",
+        "default": "#6b7280"
+      },
+      {
+        "type": "header",
+        "content": "Wenig auf Lager Badge"
+      },
+      {
+        "type": "checkbox",
+        "id": "badge_lowstock_enabled",
+        "label": "Wenig auf Lager Badge aktivieren",
+        "default": false
+      },
+      {
+        "type": "range",
+        "id": "badge_lowstock_threshold",
+        "min": 1,
+        "max": 20,
+        "step": 1,
+        "default": 5,
+        "label": "Schwellenwert"
+      },
+      {
+        "type": "text",
+        "id": "badge_lowstock_text",
+        "label": "Text",
+        "default": "Wenig auf Lager"
+      },
+      {
+        "type": "color",
+        "id": "badge_lowstock_color",
+        "label": "Farbe",
+        "default": "#f59e0b"
+      },
+      {
+        "type": "header",
+        "content": "Bestseller Badge"
+      },
+      {
+        "type": "checkbox",
+        "id": "badge_bestseller_enabled",
+        "label": "Bestseller Badge aktivieren",
+        "default": false
+      },
+      {
+        "type": "text",
+        "id": "badge_bestseller_tag",
+        "label": "Bestseller Tag",
+        "default": "bestseller",
+        "info": "Produkte mit diesem Tag erhalten das Badge."
+      },
+      {
+        "type": "text",
+        "id": "badge_bestseller_text",
+        "label": "Bestseller Text",
+        "default": "Bestseller"
+      },
+      {
+        "type": "color",
+        "id": "badge_bestseller_color",
+        "label": "Bestseller Farbe",
+        "default": "#059669"
+      },
+      {
+        "type": "header",
+        "content": "Manuelle Badges"
+      },
+      {
+        "type": "paragraph",
+        "content": "Manuelle Badges werden über Product Tags vergeben. Format: badge:Text (z.B. badge:Limited Edition, badge:Exklusiv). Mehrere Badges pro Produkt möglich."
+      },
+      {
+        "type": "color",
+        "id": "badge_custom_color",
+        "label": "Manuelle Badge Farbe",
+        "default": "#7c3aed"
+      }
+    ]
+  },
+  {
+    "name": "Performance",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Debug Modus"
+      },
+      {
+        "type": "checkbox",
+        "id": "debug_mode",
+        "label": "Debug Modus aktivieren",
+        "default": false,
+        "info": "Lädt unminifizierte JS/CSS Dateien für einfacheres Debugging. In Produktion deaktiviert lassen."
+      },
+      {
+        "type": "paragraph",
+        "content": "Im Debug Modus werden .js und .css Dateien geladen. In Produktion werden .min.js und .min.css verwendet (falls vorhanden)."
+      },
+      {
+        "type": "header",
+        "content": "Critical CSS"
+      },
+      {
+        "type": "checkbox",
+        "id": "enable_critical_css",
+        "label": "Critical CSS aktivieren",
+        "default": true,
+        "info": "Optimiert das Rendering durch Inline Critical CSS. Deaktivieren für Debugging."
+      },
+      {
+        "type": "paragraph",
+        "content": "Critical CSS enthält nur die Styles für den sichtbaren Bereich (Above-the-Fold). Non-Critical CSS wird asynchron nachgeladen."
+      },
+      {
+        "type": "header",
+        "content": "Bildformate (WebP)"
+      },
+      {
+        "type": "checkbox",
+        "id": "enable_webp",
+        "label": "WebP-Format aktivieren",
+        "default": true,
+        "info": "Nutzt das moderne WebP-Format für kleinere Dateigrößen (ca. 25-35% kleiner als JPEG). Browser ohne WebP-Support erhalten automatisch das Original-Format."
+      },
+      {
+        "type": "paragraph",
+        "content": "WebP wird über das <picture> Element mit automatischem Fallback ausgegeben. Alle modernen Browser unterstützen WebP."
+      },
+      {
+        "type": "header",
+        "content": "Lazy Loading"
+      },
+      {
+        "type": "checkbox",
+        "id": "enable_lazy_images",
+        "label": "Lazy Loading für Bilder",
+        "default": true,
+        "info": "Bilder werden erst geladen, wenn sie in den Viewport scrollen."
+      },
+      {
+        "type": "range",
+        "id": "lazy_load_threshold",
+        "min": 1,
+        "max": 8,
+        "step": 1,
+        "label": "Eager-Load erste X Bilder",
+        "default": 4,
+        "info": "Anzahl der Bilder die sofort geladen werden (Above-the-Fold)."
+      },
+      {
+        "type": "checkbox",
+        "id": "enable_lqip",
+        "label": "LQIP Placeholder aktivieren",
+        "default": false,
+        "info": "Low-Quality Image Placeholder: Zeigt ein verschwommenes Vorschaubild während das Hauptbild lädt."
+      },
+      {
+        "type": "header",
+        "content": "Resource Hints"
+      },
+      {
+        "type": "checkbox",
+        "id": "enable_preconnect",
+        "label": "Preconnect aktivieren",
+        "default": true,
+        "info": "Verbindungen zu externen Domains (CDN, Fonts) werden früh aufgebaut."
+      },
+      {
+        "type": "header",
+        "content": "Font Preloading"
+      },
+      {
+        "type": "checkbox",
+        "id": "enable_font_preload",
+        "label": "Font Preloading aktivieren",
+        "default": true,
+        "info": "Lädt Schriftarten früh für schnelleres Text-Rendering."
+      },
+      {
+        "type": "checkbox",
+        "id": "preload_heading_font",
+        "label": "Heading Font preloaden",
+        "default": true,
+        "info": "Lädt die Überschrift-Schriftart als erstes. Kritisch für LCP."
+      },
+      {
+        "type": "checkbox",
+        "id": "preload_body_font",
+        "label": "Body Font preloaden",
+        "default": false,
+        "info": "Lädt auch die Fließtext-Schriftart. Nur aktivieren wenn nötig."
+      },
+      {
+        "type": "header",
+        "content": "Prefetching"
+      },
+      {
+        "type": "checkbox",
+        "id": "enable_prefetch",
+        "label": "Prefetch aktivieren",
+        "default": true,
+        "info": "Lädt wahrscheinlich nächste Seiten vorab. Wird bei Save-Data deaktiviert."
+      },
+      {
+        "type": "url",
+        "id": "prefetch_main_collection",
+        "label": "Haupt-Collection prefetchen",
+        "info": "URL der wichtigsten Collection (z.B. /collections/all)"
+      },
+      {
+        "type": "header",
+        "content": "LCP Image Preload"
+      },
+      {
+        "type": "image_picker",
+        "id": "homepage_hero_image",
+        "label": "Homepage Hero-Bild",
+        "info": "Dieses Bild wird auf der Homepage vorab geladen. Sollte das Hero-Banner Bild sein."
+      }
+    ]
+  },
+  {
+    "name": "Typografie",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Schriftarten"
+      },
+      {
+        "type": "checkbox",
+        "id": "use_system_fonts",
+        "label": "Nur System-Schriftarten verwenden",
+        "default": false,
+        "info": "Maximale Performance: Keine externen Fonts laden. Nutzt die Systemschrift des Besuchers."
       },
       {
         "type": "font_picker",
-        "id": "type_primary_font",
+        "id": "type_header_font",
+        "default": "work_sans_n6",
+        "label": "Überschriften-Schriftart"
+      },
+      {
+        "type": "font_picker",
+        "id": "type_body_font",
         "default": "work_sans_n4",
-        "label": "t:general.primary"
+        "label": "Fließtext-Schriftart"
+      },
+      {
+        "type": "header",
+        "content": "Font Loading"
+      },
+      {
+        "type": "select",
+        "id": "font_display_strategy",
+        "label": "Font Display Strategie",
+        "options": [
+          {
+            "value": "swap",
+            "label": "Swap (Empfohlen)"
+          },
+          {
+            "value": "optional",
+            "label": "Optional (Performance)"
+          },
+          {
+            "value": "block",
+            "label": "Block (Keine FOUT)"
+          }
+        ],
+        "default": "swap",
+        "info": "Swap: Text sofort sichtbar, Font wird nachgeladen. Optional: Font nur bei schneller Verbindung. Block: Text wartet auf Font (max 3s)."
+      },
+      {
+        "type": "checkbox",
+        "id": "load_bold_italic",
+        "label": "Bold Italic laden",
+        "default": false,
+        "info": "Lädt zusätzlich die Bold-Italic Variante. Nur aktivieren wenn im Content verwendet."
+      },
+      {
+        "type": "header",
+        "content": "Skalierung"
+      },
+      {
+        "type": "range",
+        "id": "heading_scale",
+        "min": 80,
+        "max": 150,
+        "step": 5,
+        "unit": "%",
+        "label": "Überschriften-Größe",
+        "default": 100
+      },
+      {
+        "type": "range",
+        "id": "body_scale",
+        "min": 80,
+        "max": 130,
+        "step": 5,
+        "unit": "%",
+        "label": "Fließtext-Größe",
+        "default": 100
+      }
+    ]
+  },
+  {
+    "name": "Cart Drawer",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Darstellung"
+      },
+      {
+        "type": "select",
+        "id": "cart_drawer_position",
+        "label": "Position",
+        "options": [
+          { "value": "right", "label": "Rechts" },
+          { "value": "left", "label": "Links" }
+        ],
+        "default": "right",
+        "info": "Von welcher Seite der Cart Drawer eingeblendet wird."
+      },
+      {
+        "type": "select",
+        "id": "cart_drawer_width",
+        "label": "Breite",
+        "options": [
+          { "value": "small", "label": "Schmal (360px)" },
+          { "value": "medium", "label": "Mittel (420px)" },
+          { "value": "large", "label": "Breit (500px)" }
+        ],
+        "default": "medium"
+      },
+      {
+        "type": "header",
+        "content": "Verhalten"
+      },
+      {
+        "type": "checkbox",
+        "id": "cart_auto_open",
+        "label": "Nach Hinzufügen automatisch öffnen",
+        "default": true,
+        "info": "Öffnet den Cart Drawer automatisch, wenn ein Produkt hinzugefügt wird."
+      },
+      {
+        "type": "header",
+        "content": "Zusätzliche Optionen"
+      },
+      {
+        "type": "checkbox",
+        "id": "cart_show_view_cart_button",
+        "label": "Zum Warenkorb-Button anzeigen",
+        "default": true,
+        "info": "Zeigt einen zusätzlichen Link zur Warenkorb-Seite."
+      },
+      {
+        "type": "checkbox",
+        "id": "cart_show_trust_badges",
+        "label": "Trust Badge anzeigen",
+        "default": true,
+        "info": "Zeigt ein Sicherheits-Badge unter dem Checkout-Button."
+      },
+      {
+        "type": "header",
+        "content": "Bestellnotiz"
+      },
+      {
+        "type": "checkbox",
+        "id": "cart_show_note",
+        "label": "Bestellnotiz-Feld anzeigen",
+        "default": false,
+        "info": "Ermöglicht Kunden eine Nachricht zur Bestellung hinzuzufügen."
+      },
+      {
+        "type": "select",
+        "id": "cart_note_display",
+        "label": "Darstellung",
+        "options": [
+          { "value": "visible", "label": "Immer sichtbar" },
+          { "value": "accordion", "label": "Aufklappbar (Accordion)" }
+        ],
+        "default": "accordion"
+      },
+      {
+        "type": "text",
+        "id": "cart_note_label",
+        "label": "Label Text",
+        "default": "Bestellnotiz"
+      },
+      {
+        "type": "text",
+        "id": "cart_note_placeholder",
+        "label": "Placeholder Text",
+        "default": "Besondere Wünsche, Lieferanweisungen..."
+      },
+      {
+        "type": "range",
+        "id": "cart_note_char_limit",
+        "min": 0,
+        "max": 500,
+        "step": 10,
+        "label": "Zeichenlimit",
+        "default": 250,
+        "info": "0 = kein Limit"
+      },
+      {
+        "type": "header",
+        "content": "Geschenkoption"
+      },
+      {
+        "type": "checkbox",
+        "id": "cart_show_gift_option",
+        "label": "Geschenkoption anzeigen",
+        "default": false
+      },
+      {
+        "type": "text",
+        "id": "cart_gift_option_label",
+        "label": "Geschenkoption Label",
+        "default": "Als Geschenk verpacken"
+      }
+    ]
+  },
+  {
+    "name": "Kostenloser Versand",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Free Shipping Meter"
+      },
+      {
+        "type": "checkbox",
+        "id": "shipping_meter_enabled",
+        "label": "Versand-Fortschrittsanzeige aktivieren",
+        "default": true,
+        "info": "Zeigt einen Fortschrittsbalken zum kostenlosen Versand im Warenkorb."
+      },
+      {
+        "type": "header",
+        "content": "Schwellenwerte"
+      },
+      {
+        "type": "text",
+        "id": "shipping_meter_threshold",
+        "label": "Schwellenwert (Hauptwährung)",
+        "default": "50",
+        "info": "Betrag in der Shop-Hauptwährung (z.B. 50 für 50€). 0 oder leer = deaktiviert."
+      },
+      {
+        "type": "text",
+        "id": "shipping_meter_threshold_usd",
+        "label": "Schwellenwert USD",
+        "info": "Optionaler Schwellenwert für USD (z.B. 60). Leer = Hauptwährung wird verwendet."
+      },
+      {
+        "type": "text",
+        "id": "shipping_meter_threshold_gbp",
+        "label": "Schwellenwert GBP",
+        "info": "Optionaler Schwellenwert für GBP (z.B. 45). Leer = Hauptwährung wird verwendet."
+      },
+      {
+        "type": "text",
+        "id": "shipping_meter_threshold_chf",
+        "label": "Schwellenwert CHF",
+        "info": "Optionaler Schwellenwert für CHF (z.B. 55). Leer = Hauptwährung wird verwendet."
+      },
+      {
+        "type": "header",
+        "content": "Nachrichten"
+      },
+      {
+        "type": "text",
+        "id": "shipping_meter_msg_remaining",
+        "label": "Text: Unter Schwelle",
+        "info": "Verwende [amount] als Platzhalter für den Restbetrag. Leer = Standard-Text.",
+        "placeholder": "Nur noch [amount] bis zum kostenlosen Versand!"
+      },
+      {
+        "type": "text",
+        "id": "shipping_meter_msg_almost",
+        "label": "Text: Fast erreicht (90%+)",
+        "info": "Verwende [amount] als Platzhalter. Leer = Standard-Text.",
+        "placeholder": "Fast geschafft! Nur noch [amount]!"
+      },
+      {
+        "type": "text",
+        "id": "shipping_meter_msg_reached",
+        "label": "Text: Erreicht",
+        "info": "Leer = Standard-Text.",
+        "placeholder": "Du erhältst kostenlosen Versand!"
+      },
+      {
+        "type": "header",
+        "content": "Design"
+      },
+      {
+        "type": "color",
+        "id": "shipping_meter_bar_color",
+        "label": "Fortschrittsbalken Farbe",
+        "default": "#000000"
+      },
+      {
+        "type": "color",
+        "id": "shipping_meter_success_color",
+        "label": "Erfolgs-Farbe",
+        "default": "#22c55e",
+        "info": "Farbe wenn kostenloser Versand erreicht ist."
+      }
+    ]
+  },
+  {
+    "name": "Subscriptions / Abo",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Selling Plan Selector"
+      },
+      {
+        "type": "checkbox",
+        "id": "enable_subscription_selector",
+        "label": "Subscription Selector anzeigen",
+        "default": true,
+        "info": "Zeigt Einmalkauf/Abo-Toggle auf der Produktseite für Produkte mit Selling Plans."
+      },
+      {
+        "type": "header",
+        "content": "Abo-Vorteile"
+      },
+      {
+        "type": "paragraph",
+        "content": "Bis zu drei Vorteile die unter dem Abo-Selector angezeigt werden. Leer lassen um auszublenden."
+      },
+      {
+        "type": "text",
+        "id": "subscription_benefit_1",
+        "label": "Vorteil 1",
+        "default": "Kostenloser Versand bei jeder Lieferung"
+      },
+      {
+        "type": "text",
+        "id": "subscription_benefit_2",
+        "label": "Vorteil 2",
+        "default": "Jederzeit kündbar"
+      },
+      {
+        "type": "text",
+        "id": "subscription_benefit_3",
+        "label": "Vorteil 3",
+        "default": "Lieferrhythmus flexibel anpassbar"
+      }
+    ]
+  },
+  {
+    "name": "Pre-Order / Vorbestellung",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Pre-Order Funktion"
+      },
+      {
+        "type": "checkbox",
+        "id": "preorder_enabled",
+        "label": "Pre-Order aktivieren",
+        "default": false,
+        "info": "Ermöglicht es, Produkte als Vorbestellung zu markieren."
+      },
+      {
+        "type": "select",
+        "id": "preorder_detection",
+        "label": "Erkennungsmethode",
+        "options": [
+          {
+            "value": "tag",
+            "label": "Product Tag"
+          },
+          {
+            "value": "metafield",
+            "label": "Metafield (custom.pre_order)"
+          },
+          {
+            "value": "inventory",
+            "label": "Inventory (continue + 0 Bestand)"
+          }
+        ],
+        "default": "tag",
+        "info": "Wie Pre-Order Produkte erkannt werden."
+      },
+      {
+        "type": "text",
+        "id": "preorder_tag",
+        "label": "Pre-Order Tag",
+        "default": "pre-order",
+        "info": "Produkttag für die Erkennung (nur bei Methode 'Tag')."
+      },
+      {
+        "type": "header",
+        "content": "Texte"
+      },
+      {
+        "type": "text",
+        "id": "preorder_badge_text",
+        "label": "Badge Text",
+        "default": "Vorbestellung"
+      },
+      {
+        "type": "text",
+        "id": "preorder_button_text",
+        "label": "Button Text",
+        "default": "Jetzt vorbestellen"
+      },
+      {
+        "type": "textarea",
+        "id": "preorder_info_text",
+        "label": "Info-Text auf Produktseite",
+        "default": "Dieses Produkt ist eine Vorbestellung. Voraussichtliche Lieferung: [date].",
+        "info": "Verwende [date] als Platzhalter für das Lieferdatum aus dem Metafield."
+      },
+      {
+        "type": "text",
+        "id": "preorder_cart_notice",
+        "label": "Warenkorb-Hinweis",
+        "default": "Deine Bestellung enthält Vorbestellungen — längere Lieferzeit möglich.",
+        "info": "Wird im Warenkorb angezeigt wenn Pre-Order Produkte enthalten sind."
+      },
+      {
+        "type": "header",
+        "content": "Design"
+      },
+      {
+        "type": "color",
+        "id": "preorder_badge_color",
+        "label": "Badge Farbe",
+        "default": "#6366f1",
+        "info": "Hintergrundfarbe des Pre-Order Badges."
+      },
+      {
+        "type": "color",
+        "id": "preorder_badge_text_color",
+        "label": "Badge Textfarbe",
+        "default": "#ffffff"
+      }
+    ]
+  },
+  {
+    "name": "In-Store Pickup",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Abholung im Laden"
+      },
+      {
+        "type": "checkbox",
+        "id": "pickup_enabled",
+        "label": "In-Store Pickup aktivieren",
+        "default": false,
+        "info": "Zeigt Abholoptionen auf Produkt- und Warenkorb-Seiten. Lokale Abholung muss im Shopify Admin unter Versand & Lieferung aktiviert sein."
+      },
+      {
+        "type": "text",
+        "id": "pickup_label",
+        "label": "Pickup Label",
+        "default": "Im Laden abholen",
+        "info": "Text für die Abhol-Option."
+      },
+      {
+        "type": "checkbox",
+        "id": "pickup_show_on_product",
+        "label": "Verfügbarkeit auf Produktseite anzeigen",
+        "default": true,
+        "info": "Zeigt 'Abholung verfügbar bei [Standort]' auf der Produktseite."
+      },
+      {
+        "type": "header",
+        "content": "Standort-Anzeige"
+      },
+      {
+        "type": "select",
+        "id": "pickup_selector_style",
+        "label": "Standort-Selector Stil",
+        "options": [
+          {
+            "value": "radio",
+            "label": "Radio Buttons"
+          },
+          {
+            "value": "dropdown",
+            "label": "Dropdown"
+          },
+          {
+            "value": "modal",
+            "label": "Modal (Alle Standorte)"
+          }
+        ],
+        "default": "radio"
+      },
+      {
+        "type": "header",
+        "content": "Karten-Integration"
+      },
+      {
+        "type": "checkbox",
+        "id": "pickup_map_enabled",
+        "label": "Kartenansicht aktivieren",
+        "default": false,
+        "info": "Zeigt Google Maps Embed für Standorte. Erfordert einen API Key."
+      },
+      {
+        "type": "text",
+        "id": "pickup_maps_api_key",
+        "label": "Google Maps API Key",
+        "info": "Erforderlich für Kartenansicht und Entfernungsberechnung."
+      }
+    ]
+  },
+  {
+    "name": "Back-in-Stock",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Benachrichtigung bei Verfügbarkeit"
+      },
+      {
+        "type": "checkbox",
+        "id": "bis_enabled",
+        "label": "Back-in-Stock aktivieren",
+        "default": false,
+        "info": "Zeigt ein E-Mail-Formular auf der Produktseite wenn ein Produkt/Variante ausverkauft ist."
+      },
+      {
+        "type": "header",
+        "content": "Texte"
+      },
+      {
+        "type": "text",
+        "id": "bis_headline",
+        "label": "Überschrift",
+        "default": "Benachrichtigung bei Verfügbarkeit"
+      },
+      {
+        "type": "textarea",
+        "id": "bis_body_text",
+        "label": "Beschreibungstext",
+        "default": "Trage deine E-Mail ein und wir benachrichtigen dich, sobald dieser Artikel wieder verfügbar ist."
+      },
+      {
+        "type": "text",
+        "id": "bis_button_text",
+        "label": "Button-Text",
+        "default": "Benachrichtigen"
+      },
+      {
+        "type": "text",
+        "id": "bis_success_text",
+        "label": "Erfolgs-Text",
+        "default": "Danke! Wir benachrichtigen dich per E-Mail."
+      },
+      {
+        "type": "header",
+        "content": "DSGVO"
+      },
+      {
+        "type": "textarea",
+        "id": "bis_gdpr_text",
+        "label": "DSGVO-Hinweis",
+        "info": "Optional. Leer lassen um keinen Hinweis anzuzeigen.",
+        "placeholder": "Wir verwenden deine E-Mail nur für diese Benachrichtigung. Mehr in unserer Datenschutzerklärung."
+      },
+      {
+        "type": "header",
+        "content": "Third-Party Integration"
+      },
+      {
+        "type": "text",
+        "id": "bis_webhook_url",
+        "label": "Webhook URL",
+        "info": "Optional: URL für Klaviyo, Mailchimp oder andere Services. Leer = Shopify Kontaktformular.",
+        "placeholder": "https://a.]klaviyo.com/api/v1/catalog/subscribe"
       }
     ]
   },
@@ -54,6 +1531,883 @@
     ]
   },
   {
+    "name": "Größentabelle",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Allgemein"
+      },
+      {
+        "type": "checkbox",
+        "id": "size_chart_auto_detect",
+        "label": "Automatisch bei Produkten mit Größen-Option anzeigen",
+        "default": true,
+        "info": "Zeigt den Größenratgeber nur bei Produkten an, die eine Option wie 'Size', 'Größe' o.ä. haben."
+      },
+      {
+        "type": "text",
+        "id": "size_chart_page",
+        "label": "Globale Größentabelle Seite (Handle)",
+        "info": "Handle der Shopify-Seite (z.B. 'size-chart'). Wird als Fallback verwendet, wenn kein Metafield vorhanden ist.",
+        "placeholder": "size-chart"
+      },
+      {
+        "type": "text",
+        "id": "size_chart_link_text",
+        "label": "Link-Text",
+        "default": "Größenratgeber"
+      },
+      {
+        "type": "checkbox",
+        "id": "size_chart_show_icon",
+        "label": "Icon neben Link anzeigen",
+        "default": true
+      },
+      {
+        "type": "header",
+        "content": "Darstellung"
+      },
+      {
+        "type": "select",
+        "id": "size_chart_display",
+        "label": "Anzeige-Modus",
+        "options": [
+          { "value": "modal", "label": "Modal (Popup)" },
+          { "value": "drawer", "label": "Drawer (Seitenpanel)" }
+        ],
+        "default": "modal"
+      },
+      {
+        "type": "select",
+        "id": "size_chart_unit",
+        "label": "Standard-Einheit",
+        "options": [
+          { "value": "cm", "label": "Zentimeter (CM)" },
+          { "value": "inch", "label": "Inch" }
+        ],
+        "default": "cm"
+      },
+      {
+        "type": "header",
+        "content": "Datenquellen"
+      },
+      {
+        "type": "paragraph",
+        "content": "Die Größentabelle wird in folgender Reihenfolge geladen: 1. Produkt-Metafield (custom.size_chart), 2. Collection-Metafield (custom.size_chart), 3. Globale Seite (oben konfiguriert), 4. Inline-Inhalt im Block."
+      }
+    ]
+  },
+  {
+    "name": "Produkt-Zoom",
+    "settings": [
+      {
+        "type": "select",
+        "id": "zoom_type",
+        "label": "Zoom-Typ",
+        "options": [
+          { "value": "hover", "label": "Hover Zoom (Vergrößerung im Bild)" },
+          { "value": "lens", "label": "Lens Zoom (Lupenfenster)" },
+          { "value": "none", "label": "Deaktiviert" }
+        ],
+        "default": "hover",
+        "info": "Hover: Bild vergrößert sich an Maus-Position. Lens: Separates Lupenfenster neben dem Bild."
+      },
+      {
+        "type": "select",
+        "id": "zoom_level",
+        "label": "Zoom-Stufe",
+        "options": [
+          { "value": "1.5", "label": "1.5x" },
+          { "value": "2", "label": "2x" },
+          { "value": "2.5", "label": "2.5x" },
+          { "value": "3", "label": "3x" }
+        ],
+        "default": "2"
+      },
+      {
+        "type": "checkbox",
+        "id": "zoom_lightbox",
+        "label": "Lightbox aktivieren",
+        "default": true,
+        "info": "Klick auf Produktbild öffnet Vollbild-Galerie mit Navigation und Zoom."
+      },
+      {
+        "type": "select",
+        "id": "zoom_cursor",
+        "label": "Cursor-Style",
+        "options": [
+          { "value": "zoom-in", "label": "Lupe" },
+          { "value": "crosshair", "label": "Fadenkreuz" },
+          { "value": "pointer", "label": "Zeiger" }
+        ],
+        "default": "zoom-in"
+      }
+    ]
+  },
+  {
+    "name": "Produkt-Video",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Video in Produktgalerie"
+      },
+      {
+        "type": "checkbox",
+        "id": "video_enabled",
+        "label": "Videos in Galerie anzeigen",
+        "default": true,
+        "info": "Zeigt Shopify-Videos, YouTube und Vimeo als Slides in der Produktgalerie."
+      },
+      {
+        "type": "checkbox",
+        "id": "video_autoplay",
+        "label": "Autoplay (stummgeschaltet)",
+        "default": false,
+        "info": "Video startet automatisch ohne Ton wenn der Slide sichtbar ist."
+      },
+      {
+        "type": "checkbox",
+        "id": "video_loop",
+        "label": "Endlosschleife",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "video_controls",
+        "label": "Steuerungselemente anzeigen",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "video_lightbox",
+        "label": "Video im Lightbox abspielen",
+        "default": true,
+        "info": "Ermöglicht Vollbild-Video im Lightbox-Modus."
+      },
+      {
+        "type": "select",
+        "id": "video_mobile_behavior",
+        "label": "Mobile Verhalten",
+        "options": [
+          { "value": "inline", "label": "Inline abspielen" },
+          { "value": "fullscreen", "label": "Fullscreen bei Play" }
+        ],
+        "default": "fullscreen"
+      },
+      {
+        "type": "header",
+        "content": "Externe Video-URL (MP4)"
+      },
+      {
+        "type": "paragraph",
+        "content": "Externe MP4-Videos werden über das Produkt-Metafield 'custom.video_url' geladen. Shopify-Videos und YouTube/Vimeo werden automatisch aus den Produkt-Medien erkannt."
+      }
+    ]
+  },
+  {
+    "name": "Image Hotspots",
+    "settings": [
+      {
+        "type": "paragraph",
+        "content": "Globale Einstellungen für die Image Hotspots Section. Individuelle Anpassungen können in der Section selbst vorgenommen werden."
+      },
+      {
+        "type": "checkbox",
+        "id": "hotspots_pulse_animation",
+        "label": "Puls-Animation aktivieren",
+        "default": true,
+        "info": "Animierter Puls-Effekt auf den Hotspot-Dots."
+      },
+      {
+        "type": "checkbox",
+        "id": "hotspots_mobile_list",
+        "label": "Mobile Produktliste (Standard)",
+        "default": true,
+        "info": "Zeigt Produkte auf Mobile als Liste unter dem Bild. Kann pro Section überschrieben werden."
+      }
+    ]
+  },
+  {
+    "name": "Complete the Look",
+    "settings": [
+      {
+        "type": "paragraph",
+        "content": "Globale Einstellungen für die 'Complete the Look' Produktseiten-Integration. Nutze das Metafield 'custom.complete_the_look' (Product List) oder Tags mit Prefix 'look-' an den Produkten."
+      },
+      {
+        "type": "text",
+        "id": "ctl_heading",
+        "label": "Überschrift",
+        "default": "Complete the Look"
+      },
+      {
+        "type": "checkbox",
+        "id": "ctl_enable_add_all",
+        "label": "'Alle hinzufügen' aktivieren",
+        "default": true
+      },
+      {
+        "type": "text",
+        "id": "ctl_add_all_text",
+        "label": "'Alle hinzufügen' Button-Text",
+        "default": "Alle hinzufügen"
+      },
+      {
+        "type": "text",
+        "id": "ctl_discount_text",
+        "label": "Rabatt-Hinweis (optional)",
+        "info": "Z.B. '10% Rabatt auf den kompletten Look'"
+      }
+    ]
+  },
+  {
+    "name": "Währung / Region",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Currency / Country Switcher"
+      },
+      {
+        "type": "paragraph",
+        "content": "Ermöglicht Kunden, ihr Land und die Währung zu wechseln. Nutzt Shopify Markets — Märkte und Währungen müssen im Shopify Admin unter Einstellungen > Märkte konfiguriert sein."
+      },
+      {
+        "type": "checkbox",
+        "id": "currency_show_header",
+        "label": "Im Header anzeigen",
+        "default": true,
+        "info": "Zeigt den Währungswähler im Desktop-Header."
+      },
+      {
+        "type": "checkbox",
+        "id": "currency_show_footer",
+        "label": "Im Footer anzeigen",
+        "default": true,
+        "info": "Zeigt den Währungswähler im Footer."
+      },
+      {
+        "type": "checkbox",
+        "id": "currency_show_mobile",
+        "label": "Im Mobile Menü anzeigen",
+        "default": true,
+        "info": "Zeigt den Währungswähler im mobilen Menü."
+      },
+      {
+        "type": "header",
+        "content": "Darstellung"
+      },
+      {
+        "type": "select",
+        "id": "currency_display_style",
+        "label": "Anzeigestil",
+        "options": [
+          { "value": "dropdown", "label": "Dropdown (Select)" },
+          { "value": "disclosure", "label": "Disclosure (Popover)" }
+        ],
+        "default": "dropdown",
+        "info": "Dropdown: Natives Select-Element. Disclosure: Aufklapp-Panel mit Buttons."
+      },
+      {
+        "type": "checkbox",
+        "id": "currency_show_label",
+        "label": "Label anzeigen",
+        "default": false,
+        "info": "Zeigt 'Land/Währung' als Label über dem Switcher."
+      },
+      {
+        "type": "checkbox",
+        "id": "currency_show_code",
+        "label": "Währungscode anzeigen",
+        "default": true,
+        "info": "Zeigt den ISO-Code (EUR, USD) zusätzlich zum Symbol."
+      },
+      {
+        "type": "checkbox",
+        "id": "currency_show_flags",
+        "label": "Flaggen anzeigen",
+        "default": false,
+        "info": "Zeigt Länderflaggen neben dem Ländernamen. Erfordert SVG-Flaggen-Dateien in Assets."
+      }
+    ]
+  },
+  {
+    "name": "RTL / Right-to-Left",
+    "settings": [
+      {
+        "type": "header",
+        "content": "RTL-Unterstützung"
+      },
+      {
+        "type": "paragraph",
+        "content": "RTL wird automatisch für Arabisch (ar), Hebräisch (he), Persisch (fa) und Urdu (ur) aktiviert. Das Theme erkennt die aktive Sprache und passt Layout, Navigation und Styles automatisch an."
+      },
+      {
+        "type": "text",
+        "id": "rtl_custom_languages",
+        "label": "Zusätzliche RTL-Sprachen",
+        "info": "Kommagetrennte ISO-Codes für weitere RTL-Sprachen (z.B. 'ku,ps,sd'). Arabisch, Hebräisch, Persisch und Urdu sind bereits integriert.",
+        "placeholder": "ku,ps,sd"
+      }
+    ]
+  },
+  {
+    "name": "Dark Mode",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Dark Mode"
+      },
+      {
+        "type": "checkbox",
+        "id": "dark_mode_enabled",
+        "label": "Dark Mode aktivieren",
+        "default": false,
+        "info": "Zeigt einen Dark/Light Mode Toggle im Header an."
+      },
+      {
+        "type": "select",
+        "id": "dark_mode_default",
+        "label": "Standard-Modus",
+        "options": [
+          { "value": "light", "label": "Light" },
+          { "value": "dark", "label": "Dark" },
+          { "value": "system", "label": "System (OS-Präferenz)" }
+        ],
+        "default": "light",
+        "info": "Welcher Modus standardmäßig aktiv ist, wenn kein Besucher-Cookie vorhanden."
+      },
+      {
+        "type": "header",
+        "content": "Dark Mode Farben"
+      },
+      {
+        "type": "paragraph",
+        "content": "Diese Farben werden im Dark Mode verwendet. Die Light Mode Farben kommen aus den bestehenden Theme-Einstellungen."
+      },
+      {
+        "type": "color",
+        "id": "dark_color_background",
+        "label": "Hintergrund",
+        "default": "#121212"
+      },
+      {
+        "type": "color",
+        "id": "dark_color_background_secondary",
+        "label": "Hintergrund Sekundär",
+        "default": "#1e1e1e"
+      },
+      {
+        "type": "color",
+        "id": "dark_color_text",
+        "label": "Textfarbe",
+        "default": "#e4e4e7"
+      },
+      {
+        "type": "color",
+        "id": "dark_color_text_secondary",
+        "label": "Textfarbe Sekundär",
+        "default": "#a1a1aa"
+      },
+      {
+        "type": "color",
+        "id": "dark_color_border",
+        "label": "Rahmenfarbe",
+        "default": "#2e2e2e"
+      },
+      {
+        "type": "color",
+        "id": "dark_color_primary",
+        "label": "Primärfarbe",
+        "default": "#ffffff"
+      },
+      {
+        "type": "color",
+        "id": "dark_color_secondary",
+        "label": "Sekundärfarbe",
+        "default": "#a1a1aa"
+      },
+      {
+        "type": "color",
+        "id": "dark_color_accent",
+        "label": "Akzentfarbe",
+        "default": "#6366f1"
+      },
+      {
+        "type": "header",
+        "content": "Dark Mode Buttons"
+      },
+      {
+        "type": "color",
+        "id": "dark_color_button_primary_bg",
+        "label": "Primary Button Hintergrund",
+        "default": "#ffffff"
+      },
+      {
+        "type": "color",
+        "id": "dark_color_button_primary_text",
+        "label": "Primary Button Text",
+        "default": "#121212"
+      },
+      {
+        "type": "color",
+        "id": "dark_color_button_secondary_bg",
+        "label": "Secondary Button Hintergrund",
+        "default": "transparent"
+      },
+      {
+        "type": "color",
+        "id": "dark_color_button_secondary_text",
+        "label": "Secondary Button Text",
+        "default": "#e4e4e7"
+      },
+      {
+        "type": "color",
+        "id": "dark_color_button_secondary_border",
+        "label": "Secondary Button Rahmen",
+        "default": "#3f3f46"
+      }
+    ]
+  },
+  {
+    "name": "Local Business SEO",
+    "settings": [
+      {
+        "type": "paragraph",
+        "content": "Generiert JSON-LD Schema.org LocalBusiness Structured Data für lokale Geschäfte. Nur aktivieren wenn ein physischer Standort existiert — nicht für reine Online-Shops."
+      },
+      {
+        "type": "checkbox",
+        "id": "lb_enabled",
+        "label": "Local Business Schema aktivieren",
+        "default": false,
+        "info": "Fügt automatisch JSON-LD LocalBusiness Schema auf allen Seiten ein."
+      },
+      {
+        "type": "select",
+        "id": "lb_type",
+        "label": "Business-Typ",
+        "options": [
+          { "value": "LocalBusiness", "label": "Lokales Geschäft (allgemein)" },
+          { "value": "Store", "label": "Laden / Shop" },
+          { "value": "ClothingStore", "label": "Bekleidungsgeschäft" },
+          { "value": "ShoeStore", "label": "Schuhgeschäft" },
+          { "value": "JewelryStore", "label": "Juwelier" },
+          { "value": "FurnitureStore", "label": "Möbelgeschäft" },
+          { "value": "ElectronicsStore", "label": "Elektronikgeschäft" },
+          { "value": "SportingGoodsStore", "label": "Sportgeschäft" },
+          { "value": "BookStore", "label": "Buchhandlung" },
+          { "value": "Florist", "label": "Blumenladen" },
+          { "value": "Bakery", "label": "Bäckerei" },
+          { "value": "Restaurant", "label": "Restaurant" },
+          { "value": "CafeOrCoffeeShop", "label": "Café" },
+          { "value": "BarOrPub", "label": "Bar / Pub" },
+          { "value": "BeautySalon", "label": "Kosmetikstudio" },
+          { "value": "HairSalon", "label": "Friseursalon" },
+          { "value": "HealthAndBeautyBusiness", "label": "Gesundheit & Schönheit" }
+        ],
+        "default": "Store"
+      },
+      {
+        "type": "header",
+        "content": "Geschäftsdaten"
+      },
+      {
+        "type": "text",
+        "id": "lb_name",
+        "label": "Geschäftsname",
+        "info": "Leer = Shop-Name wird verwendet."
+      },
+      {
+        "type": "textarea",
+        "id": "lb_description",
+        "label": "Beschreibung",
+        "info": "Kurze Beschreibung des Geschäfts (1–2 Sätze)."
+      },
+      {
+        "type": "image_picker",
+        "id": "lb_logo",
+        "label": "Logo",
+        "info": "Geschäftslogo für Google Knowledge Panel."
+      },
+      {
+        "type": "image_picker",
+        "id": "lb_image",
+        "label": "Geschäftsbild",
+        "info": "Foto des Ladens / Gebäudes."
+      },
+      {
+        "type": "header",
+        "content": "Adresse"
+      },
+      {
+        "type": "text",
+        "id": "lb_street",
+        "label": "Straße & Hausnummer",
+        "placeholder": "Musterstraße 1"
+      },
+      {
+        "type": "text",
+        "id": "lb_city",
+        "label": "Stadt",
+        "placeholder": "Berlin"
+      },
+      {
+        "type": "text",
+        "id": "lb_zip",
+        "label": "PLZ",
+        "placeholder": "10115"
+      },
+      {
+        "type": "text",
+        "id": "lb_region",
+        "label": "Bundesland / Region",
+        "placeholder": "Berlin",
+        "info": "Optional."
+      },
+      {
+        "type": "text",
+        "id": "lb_country",
+        "label": "Land (ISO-Code)",
+        "default": "DE",
+        "info": "ISO 3166-1 Ländercode (z.B. DE, AT, CH)."
+      },
+      {
+        "type": "header",
+        "content": "Kontakt"
+      },
+      {
+        "type": "text",
+        "id": "lb_phone",
+        "label": "Telefon",
+        "placeholder": "+49 30 12345678",
+        "info": "Internationales Format empfohlen."
+      },
+      {
+        "type": "text",
+        "id": "lb_email",
+        "label": "E-Mail",
+        "placeholder": "info@deinshop.de"
+      },
+      {
+        "type": "header",
+        "content": "Geo-Koordinaten"
+      },
+      {
+        "type": "text",
+        "id": "lb_latitude",
+        "label": "Breitengrad (Latitude)",
+        "placeholder": "52.5200",
+        "info": "Findest du über Google Maps (Rechtsklick → Koordinaten kopieren)."
+      },
+      {
+        "type": "text",
+        "id": "lb_longitude",
+        "label": "Längengrad (Longitude)",
+        "placeholder": "13.4050"
+      },
+      {
+        "type": "header",
+        "content": "Öffnungszeiten"
+      },
+      {
+        "type": "paragraph",
+        "content": "Leer lassen = geschlossen an diesem Tag. Format: 09:00-18:00 (24h). Für Mittagspause: 09:00-12:00,13:00-18:00"
+      },
+      {
+        "type": "text",
+        "id": "lb_hours_mo",
+        "label": "Montag",
+        "placeholder": "09:00-18:00"
+      },
+      {
+        "type": "text",
+        "id": "lb_hours_tu",
+        "label": "Dienstag",
+        "placeholder": "09:00-18:00"
+      },
+      {
+        "type": "text",
+        "id": "lb_hours_we",
+        "label": "Mittwoch",
+        "placeholder": "09:00-18:00"
+      },
+      {
+        "type": "text",
+        "id": "lb_hours_th",
+        "label": "Donnerstag",
+        "placeholder": "09:00-18:00"
+      },
+      {
+        "type": "text",
+        "id": "lb_hours_fr",
+        "label": "Freitag",
+        "placeholder": "09:00-18:00"
+      },
+      {
+        "type": "text",
+        "id": "lb_hours_sa",
+        "label": "Samstag",
+        "placeholder": "10:00-14:00"
+      },
+      {
+        "type": "text",
+        "id": "lb_hours_su",
+        "label": "Sonntag",
+        "info": "Leer = geschlossen."
+      },
+      {
+        "type": "header",
+        "content": "Social Media"
+      },
+      {
+        "type": "paragraph",
+        "content": "Social-Media-Profile werden als sameAs im Schema ausgegeben. Nur ausgefüllte Felder werden verwendet."
+      },
+      {
+        "type": "text",
+        "id": "lb_social_facebook",
+        "label": "Facebook URL",
+        "placeholder": "https://facebook.com/deinshop"
+      },
+      {
+        "type": "text",
+        "id": "lb_social_instagram",
+        "label": "Instagram URL",
+        "placeholder": "https://instagram.com/deinshop"
+      },
+      {
+        "type": "text",
+        "id": "lb_social_tiktok",
+        "label": "TikTok URL",
+        "placeholder": "https://tiktok.com/@deinshop"
+      },
+      {
+        "type": "text",
+        "id": "lb_social_youtube",
+        "label": "YouTube URL",
+        "placeholder": "https://youtube.com/@deinshop"
+      },
+      {
+        "type": "text",
+        "id": "lb_social_linkedin",
+        "label": "LinkedIn URL",
+        "placeholder": "https://linkedin.com/company/deinshop"
+      },
+      {
+        "type": "header",
+        "content": "Zusätzlich"
+      },
+      {
+        "type": "select",
+        "id": "lb_price_range",
+        "label": "Preisspanne",
+        "options": [
+          { "value": "", "label": "Nicht angeben" },
+          { "value": "$", "label": "€ — Günstig" },
+          { "value": "$$", "label": "€€ — Mittel" },
+          { "value": "$$$", "label": "€€€ — Gehoben" },
+          { "value": "$$$$", "label": "€€€€ — Premium" }
+        ],
+        "default": ""
+      },
+      {
+        "type": "text",
+        "id": "lb_currencies_accepted",
+        "label": "Akzeptierte Währungen",
+        "placeholder": "EUR",
+        "info": "Kommagetrennt (z.B. EUR, USD, CHF)."
+      },
+      {
+        "type": "text",
+        "id": "lb_payment_accepted",
+        "label": "Akzeptierte Zahlungsmittel",
+        "placeholder": "Kreditkarte, EC-Karte, Bar, PayPal",
+        "info": "Kommagetrennt."
+      }
+    ]
+  },
+  {
+    "name": "robots.txt",
+    "settings": [
+      {
+        "type": "paragraph",
+        "content": "Kontrolliert die robots.txt Datei, die Suchmaschinen-Crawlern sagt, welche Seiten indexiert werden dürfen. Änderungen wirken sich direkt auf SEO aus — nur ändern wenn du weißt, was du tust."
+      },
+      {
+        "type": "header",
+        "content": "Filter & Sortierung blockieren"
+      },
+      {
+        "type": "checkbox",
+        "id": "robots_block_filters",
+        "label": "Filter-URLs blockieren",
+        "default": true,
+        "info": "Blockiert /collections/*?filter* URLs. Verhindert Duplicate Content durch gefilterte Collection-Seiten."
+      },
+      {
+        "type": "checkbox",
+        "id": "robots_block_sort",
+        "label": "Sortierungs-URLs blockieren",
+        "default": true,
+        "info": "Blockiert /collections/*?sort_by* URLs. Verhindert Duplicate Content durch sortierte Collection-Seiten."
+      },
+      {
+        "type": "header",
+        "content": "Suchseiten"
+      },
+      {
+        "type": "checkbox",
+        "id": "robots_block_search",
+        "label": "Suchseiten blockieren",
+        "default": true,
+        "info": "Blockiert /search und /search?q=* für Crawler. Empfohlen um Thin Content zu vermeiden."
+      },
+      {
+        "type": "header",
+        "content": "Crawl-Delay"
+      },
+      {
+        "type": "checkbox",
+        "id": "robots_crawl_delay_enabled",
+        "label": "Crawl-Delay aktivieren",
+        "default": false,
+        "info": "Setzt eine Verzögerung zwischen Crawler-Anfragen. Nur aktivieren bei Server-Problemen."
+      },
+      {
+        "type": "range",
+        "id": "robots_crawl_delay",
+        "min": 1,
+        "max": 30,
+        "step": 1,
+        "default": 10,
+        "unit": "s",
+        "label": "Crawl-Delay (Sekunden)",
+        "info": "Empfohlen: 10s. Niedrigere Werte = häufigeres Crawling."
+      },
+      {
+        "type": "header",
+        "content": "Zusätzliche Regeln"
+      },
+      {
+        "type": "textarea",
+        "id": "robots_custom_disallow",
+        "label": "Zusätzliche Disallow-Pfade",
+        "info": "Ein Pfad pro Zeile (z.B. /pages/intern oder /collections/test). Ohne 'Disallow:' Prefix eingeben.",
+        "placeholder": "/pages/intern\n/collections/test-collection"
+      },
+      {
+        "type": "textarea",
+        "id": "robots_custom_allow",
+        "label": "Zusätzliche Allow-Pfade",
+        "info": "Ein Pfad pro Zeile. Überschreibt Disallow-Regeln für spezifische Pfade.",
+        "placeholder": "/collections/sale"
+      }
+    ]
+  },
+  {
+    "name": "Interne Verlinkung",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Verwandte Inhalte"
+      },
+      {
+        "type": "paragraph",
+        "content": "Zeigt verwandte Produkte, Artikel oder Collections am Ende von Content-Bereichen. Verbessert die interne Linkstruktur für SEO."
+      },
+      {
+        "type": "checkbox",
+        "id": "related_links_enabled",
+        "label": "Verwandte Inhalte aktivieren",
+        "default": true,
+        "info": "Zeigt automatisch verwandte Produkte auf Produktseiten und verwandte Artikel in Blog-Posts."
+      },
+      {
+        "type": "range",
+        "id": "related_links_max",
+        "min": 2,
+        "max": 8,
+        "step": 1,
+        "default": 4,
+        "label": "Max. Anzahl Links"
+      },
+      {
+        "type": "text",
+        "id": "related_links_heading_product",
+        "label": "Überschrift (Produktseite)",
+        "default": "Das könnte dich auch interessieren"
+      },
+      {
+        "type": "text",
+        "id": "related_links_heading_article",
+        "label": "Überschrift (Blog-Artikel)",
+        "default": "Weiterlesen"
+      },
+      {
+        "type": "checkbox",
+        "id": "related_links_show_image",
+        "label": "Vorschaubilder anzeigen",
+        "default": true,
+        "info": "Zeigt kleine Thumbnails neben den Links."
+      },
+      {
+        "type": "header",
+        "content": "Auto-Linking"
+      },
+      {
+        "type": "paragraph",
+        "content": "Scannt Produktbeschreibungen und Blog-Artikel nach Keywords (Produkt- und Collection-Titel) und verlinkt automatisch zur passenden Seite. Max. 2–3 Links pro Content-Block für ein natürliches Erscheinungsbild."
+      },
+      {
+        "type": "checkbox",
+        "id": "auto_linking_enabled",
+        "label": "Auto-Linking aktivieren",
+        "default": false,
+        "info": "Verlinkt automatisch Keywords in Produktbeschreibungen und Blog-Artikeln."
+      },
+      {
+        "type": "range",
+        "id": "auto_linking_max",
+        "min": 1,
+        "max": 5,
+        "step": 1,
+        "default": 3,
+        "label": "Max. Auto-Links pro Block",
+        "info": "Empfehlung: 2–3 für natürliches Erscheinungsbild."
+      },
+      {
+        "type": "range",
+        "id": "auto_linking_min_length",
+        "min": 3,
+        "max": 8,
+        "step": 1,
+        "default": 4,
+        "label": "Min. Keyword-Länge (Wörter)",
+        "info": "Nur Keywords mit mindestens dieser Wortanzahl werden verlinkt. Verhindert zu kurze/allgemeine Matches."
+      },
+      {
+        "type": "textarea",
+        "id": "auto_linking_exclude",
+        "label": "Keywords ausschließen",
+        "info": "Kommagetrennte Liste von Keywords die nicht verlinkt werden sollen (z.B. 'Home, Sale, Neu, Alle').",
+        "placeholder": "Home, Sale, Neu, Alle Produkte"
+      },
+      {
+        "type": "checkbox",
+        "id": "auto_linking_collections",
+        "label": "Collection-Titel verlinken",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "auto_linking_products",
+        "label": "Produkt-Titel verlinken",
+        "default": false,
+        "info": "Kann bei vielen Produkten die Ladezeit beeinflussen. Empfohlen: nur Collections verlinken."
+      }
+    ]
+  },
+  {
     "name": "t:general.colors",
     "settings": [
       {
@@ -67,16 +2421,6 @@
         "id": "foreground_color",
         "default": "#333333",
         "label": "t:labels.foreground"
-      },
-      {
-        "type": "range",
-        "id": "input_corner_radius",
-        "min": 0,
-        "max": 10,
-        "step": 1,
-        "unit": "px",
-        "label": "t:labels.input_corner_radius",
-        "default": 4
       }
     ]
   }

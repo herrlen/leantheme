@@ -1,106 +1,189 @@
 <!doctype html>
-<html lang="{{ request.locale.iso_code }}">
+{%- liquid
+  assign current_lang = request.locale.iso_code | downcase
+  assign is_rtl_lang = false
+
+  if current_lang == 'ar' or current_lang == 'he' or current_lang == 'fa' or current_lang == 'ur'
+    assign is_rtl_lang = true
+  endif
+
+  if settings.rtl_custom_languages != blank
+    assign rtl_custom = settings.rtl_custom_languages | downcase | split: ','
+    for rtl_lang in rtl_custom
+      assign rtl_lang_trimmed = rtl_lang | strip
+      if current_lang == rtl_lang_trimmed
+        assign is_rtl_lang = true
+        break
+      endif
+    endfor
+  endif
+-%}
+<html lang="{{ request.locale.iso_code }}"{% if is_rtl_lang %} dir="rtl"{% endif %}>
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <link rel="canonical" href="{{ canonical_url }}">
+
+    {%- comment -%} Dark Mode: Anti-flash script (must run before any rendering) {%- endcomment -%}
+    {%- if settings.dark_mode_enabled -%}
+      <script>
+        (function(){
+          var d=document.documentElement,s='theme-preference',m;
+          try{m=localStorage.getItem(s)}catch(e){}
+          m=m||'{{ settings.dark_mode_default | default: "light" }}';
+          var t=m;
+          if(m==='system'){t=window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'}
+          d.setAttribute('data-theme',t);
+          d.setAttribute('data-theme-mode',m);
+        })();
+      </script>
+    {%- endif -%}
+
+    {%- comment -%}
+      ============================================
+      RESOURCE PRELOADING (Muss ganz am Anfang stehen!)
+      Preconnect, Font Preload, LCP Image Preload
+      ============================================
+    {%- endcomment -%}
+    {% render 'preload-resources' %}
+
+    {%- comment -%}
+      ============================================
+      FONT LOADING SYSTEM
+      @font-face, Preloading, CSS Custom Properties
+      ============================================
+    {%- endcomment -%}
+    {% render 'font-loader' %}
 
     {%- if settings.favicon != blank -%}
       <link rel="icon" type="image/png" href="{{ settings.favicon | image_url: width: 32, height: 32 }}">
     {%- endif -%}
 
-    {% if page_description %}
-      <meta name="description" content="{{ page_description | escape }}">
-    {% endif %}
-{%- liquid
-      assign body_font = settings.type_body_font
-      assign header_font = settings.type_header_font
-      assign body_font_bold = body_font | font_modify: 'weight', 'bold'
-      assign body_font_italic = body_font | font_modify: 'style', 'italic'
-    %}
+    {%- comment -%}
+      ============================================
+      CSS LOADING STRATEGY
+      1. Critical CSS inline (Above-the-fold)
+      2. Non-Critical CSS async (Below-the-fold)
+      ============================================
+    {%- endcomment -%}
 
-    <style>
-      /* 1. Schriften laden (Shopify CDN = DSGVO OK, da Content Delivery Network) */
-      {{ body_font | font_face: font_display: 'swap' }}
-      {{ header_font | font_face: font_display: 'swap' }}
-      {{ body_font_bold | font_face: font_display: 'swap' }}
-      {{ body_font_italic | font_face: font_display: 'swap' }}
+    {%- if settings.enable_critical_css != false -%}
+      {%- comment -%} Critical CSS - Inline für schnelles First Paint {%- endcomment -%}
+      {% render 'critical-css' %}
 
-      /* 2. Variablen definieren */
-      :root {
-        --font-body-family: {{ body_font.family }}, {{ body_font.fallback_families }};
-        --font-header-family: {{ header_font.family }}, {{ header_font.fallback_families }};
-        
-        --font-body-weight: {{ body_font.weight }};
-        --font-header-weight: {{ header_font.weight }};
-      }
-    </style>
-    {% # Inlined CSS Variables %}
-    {% render 'css-variables' %}
+      {%- comment -%} Non-Critical CSS - Async laden nach Critical Path {%- endcomment -%}
+      {{ 'non-critical.css' | asset_url | stylesheet_tag: preload: true }}
+      <noscript>
+        {{ 'non-critical.css' | asset_url | stylesheet_tag }}
+      </noscript>
 
-    {% comment %}
-      Font preloading:
-      1. Preconnect to font CDN for faster connection
-      2. Preload only the critical font variant (base weight)
-      3. Additional variants load on-demand via @font-face
-    {% endcomment %}
-    {% unless settings.type_primary_font.system? %}
-      <link rel="preconnect" href="https://fonts.shopifycdn.com" crossorigin>
+      {%- comment -%}
+        Legacy critical.css entfernt — die Reset-Styles (459B) sind bereits
+        vollständig in critical-css.liquid inline enthalten. Spart 1 HTTP Request.
+      {%- endcomment -%}
 
-      {% comment %} Preload the base font variant for initial page render {% endcomment %}
-      {{ settings.type_primary_font | font_url | preload_tag: as: 'font', crossorigin: 'anonymous' }}
-    {% endunless %}
+    {%- else -%}
+      {%- comment -%} Fallback: Standard CSS Loading (für Debugging) {%- endcomment -%}
+      {% render 'css-variables' %}
+      {{ 'critical.css' | asset_url | stylesheet_tag }}
+      {{ 'non-critical.css' | asset_url | stylesheet_tag }}
+    {%- endif -%}
 
-    {% # Load and preload the critical CSS %}
-    {{ 'critical.css' | asset_url | stylesheet_tag: preload: true }}
+    {%- comment -%} RTL Support (Arabic, Hebrew, Persian) {%- endcomment -%}
+    {% render 'rtl-styles' %}
 
-    {% # Social, title, etc. %}
-    {% render 'meta-tags' %}
+    {%- comment -%} SEO: Meta Tags, OG, Twitter, Structured Data {%- endcomment -%}
+    {% render 'seo-meta' %}
+
+    {%- comment -%} Local Business Schema (JSON-LD) — nur wenn aktiviert {%- endcomment -%}
+    {%- render 'schema-local-business' -%}
 
     {{ content_for_header }}
   </head>
 
   <body>
+    {%- comment -%} Age Verifier — blockiert Seite bis Alter bestätigt {%- endcomment -%}
+    {% section 'age-verifier' %}
+
+    {%- comment -%} Skip to Content - Accessibility {%- endcomment -%}
+    <a class="skip-to-content-link visually-hidden" href="#main-content">
+      {{ 'accessibility.skip_to_content' | t }}
+    </a>
+
     {% sections 'header-group' %}
 
-    {{ content_for_layout }}
+    <main id="main-content" role="main" tabindex="-1">
+      {{ content_for_layout }}
+    </main>
 
     {% sections 'footer-group' %}
-  <script>
-  // Lean Header Scroll Logic
-  document.addEventListener('DOMContentLoaded', function() {
-    const header = document.querySelector('.site-header');
-    
-    // Funktion die prüft, ob gescrollt wurde
-    function handleScroll() {
-      if (window.scrollY > 20) { // Ab 20px scrollen
-        header.classList.add('is-scrolled');
-      } else {
-        header.classList.remove('is-scrolled');
-      }
-    }
 
-    // Nur aktivieren, wenn der Header existiert
-    if (header) {
-      window.addEventListener('scroll', handleScroll);
-    }
-  });
-</script>
-{% section 'footer' %}
-  
-  {% section 'cart-drawer' %}
-<script>
-  // Überschreibe alle Links, die zum Warenkorb führen
-  document.addEventListener("DOMContentLoaded", function() {
-    const cartLinks = document.querySelectorAll('a[href="/cart"]');
-    cartLinks.forEach(link => {
-      link.addEventListener('click', function(e) {
-        e.preventDefault(); // Verhindert Seite laden
-        openCartDrawer(); // Öffnet Drawer
-      });
-    });
-  });
-</script>   
-</body>
+    {%- comment -%} Cart Drawer – rendered as snippet so it stays hidden in the Theme Editor.
+       The Section Rendering API still uses sections/cart-drawer.liquid for AJAX refreshes. {%- endcomment -%}
+    {% render 'cart-drawer' %}
+
+    {%- comment -%} Quick View Modal (für Produkte mit Varianten) {%- endcomment -%}
+    {% render 'quick-view-modal' %}
+
+    {%- comment -%}
+      ============================================
+      JAVASCRIPT LOADING STRATEGY
+      1. Critical JS - Header, Navigation, Cart Icon (defer)
+      2. Theme JS - Main functionality (defer, lazy)
+      3. Conditional JS - Product, Collection, etc.
+      ============================================
+    {%- endcomment -%}
+
+    {%- comment -%} Theme Toggle JavaScript {%- endcomment -%}
+    {%- if settings.dark_mode_enabled -%}
+      <script src="{{ 'theme-toggle.js' | asset_url }}" defer="defer"></script>
+    {%- endif -%}
+
+    {%- comment -%} Critical JavaScript - Essentiell für Above-the-Fold {%- endcomment -%}
+    {% render 'script-loader', script: 'critical', preload: true %}
+
+    {%- comment -%} Parallax Scroll Effects — nur laden wenn [data-parallax] Elemente vorhanden {%- endcomment -%}
+    <script>
+      (function(){if(document.querySelector('[data-parallax]')){var s=document.createElement('script');s.src="{{ 'parallax.js' | asset_url }}";s.defer=true;document.body.appendChild(s)}})();
+    </script>
+
+    {%- comment -%} Main Theme JavaScript - Allgemeine Funktionalität {%- endcomment -%}
+    {% render 'script-loader', script: 'theme' %}
+
+    {%- comment -%} Cart JavaScript - Deferred to idle time to reduce TBT.
+       Still global (cart drawer is on every page) but doesn't need to run immediately. {%- endcomment -%}
+    <script>
+      (function(){
+        var src="{{ 'cart' | append: '.min.js' | asset_url }}";
+        if(!src){src="{{ 'cart.js' | asset_url }}";}
+        function load(){var s=document.createElement('script');s.src=src;s.defer=true;document.body.appendChild(s);}
+        if('requestIdleCallback' in window){requestIdleCallback(load,{timeout:3000})}else{setTimeout(load,300)}
+      })();
+    </script>
+
+    {%- comment -%} Konditionelle Scripts basierend auf Template {%- endcomment -%}
+    {%- if template.name == 'product' -%}
+      {% render 'script-loader', script: 'sticky-cart' %}
+    {%- endif -%}
+
+    {%- comment -%} Quick Buy Script - Für Collection/Index Seiten mit Produktkarten {%- endcomment -%}
+    {%- if template.name == 'collection' or template.name == 'index' or template.name == 'search' -%}
+      {% render 'script-loader', script: 'quick-buy' %}
+    {%- endif -%}
+
+    {%- comment -%} Main content focus style (for skip-link target) {%- endcomment -%}
+    <style>
+      #main-content:focus { outline: none; }
+      #main-content:focus-visible { outline: 2px solid var(--color-primary, #000); outline-offset: -2px; }
+    </style>
+
+    {%- comment -%} Auto-Link Content — Interne Verlinkung {%- endcomment -%}
+    {%- render 'auto-link-content' -%}
+
+    {%- comment -%} Popup / Promo (supports delay, exit-intent & scroll triggers) {%- endcomment -%}
+    {% section 'popup-promo' %}
+
+    {%- comment -%} SEO Audit Dashboard — nur für Admins / Theme Editor {%- endcomment -%}
+    {% section 'seo-dashboard' %}
+  </body>
 </html>

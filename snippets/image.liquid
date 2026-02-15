@@ -1,11 +1,9 @@
 {% doc %}
   Renders a responsive image that might be wrapped in a link.
+  Integrates with image-alt.liquid for automatic ALT text generation.
 
   When `width`, `height` and `crop` are provided, the image will be rendered
   with a fixed aspect ratio.
-
-  Serves as an example of how to use the `image_url` filter and `image_tag` filter
-  as well as how you can use LiquidDoc to document your code.
 
   @param {image} image - The image to be rendered
   @param {string} [url] - An optional destination URL for the image
@@ -13,18 +11,20 @@
   @param {number} [width] - The highest resolution width of the image to be rendered
   @param {number} [height] - The highest resolution height of the image to be rendered
   @param {string} [crop] - The crop position of the image
+  @param {string} [alt] - Manual ALT text override
+  @param {string} [context] - Context for auto-ALT: 'product', 'collection', 'article', 'blog'
+  @param {object} [product] - Product object for auto-ALT
+  @param {object} [collection] - Collection object for auto-ALT
+  @param {object} [article] - Article object for auto-ALT
+  @param {number} [position] - Image position for galleries
+  @param {string} [variant_title] - Variant title for auto-ALT
+  @param {boolean} [decorative] - Set true for decorative images (empty ALT)
 
   @example
   {% render 'image', image: product.featured_image %}
-  {% render 'image', image: product.featured_image, url: product.url %}
-  {% render 'image',
-    class: 'product__image',
-    image: product.featured_image,
-    url: product.url,
-    width: 1200,
-    height: 800,
-    crop: 'center',
-  %}
+  {% render 'image', image: product.featured_image, url: product.url, context: 'product', product: product %}
+  {% render 'image', image: collection.image, context: 'collection', collection: collection %}
+  {% render 'image', image: decorative_image, decorative: true %}
 {% enddoc %}
 
 {% liquid
@@ -37,6 +37,12 @@
   else
     assign wrapper = 'div'
   endif
+
+  # Generate ALT text using centralized system
+  capture image_alt_text
+    render 'image-alt', image: image, fallback: alt, context: context, product: product, collection: collection, article: article, blog: blog, position: position, variant_title: variant_title, decorative: decorative
+  endcapture
+  assign image_alt_text = image_alt_text | strip
 %}
 
 <{{ wrapper }}
@@ -45,7 +51,11 @@
     href="{{ url }}"
   {% endif %}
 >
-  {{ image | image_url: width: width, height: height, crop: crop | image_tag }}
+  {%- if decorative -%}
+    {{ image | image_url: width: width, height: height, crop: crop | image_tag: alt: '', role: 'presentation', aria-hidden: 'true' }}
+  {%- else -%}
+    {{ image | image_url: width: width, height: height, crop: crop | image_tag: alt: image_alt_text }}
+  {%- endif -%}
 </{{ wrapper }}>
 
 {% stylesheet %}
@@ -60,5 +70,12 @@
   .image > img {
     width: 100%;
     height: auto;
+    /* CLS Prevention: Aspect-ratio als Fallback */
+    aspect-ratio: attr(width) / attr(height);
+  }
+
+  /* CLS Prevention: Platzhalter während Laden */
+  .image--loading {
+    background-color: #f5f5f5;
   }
 {% endstylesheet %}

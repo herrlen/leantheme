@@ -9,12 +9,306 @@
  */
 {
   "sections": {
-    "main": {
-      "type": "hello-world",
-      "settings": {}
+    "hero_banner": {
+      "type": "hero-banner",
+      "settings": {
+        "heading": "Elevate Your Everyday",
+        "text": "Discover thoughtfully designed pieces that blend quality craftsmanship with modern aesthetics.",
+        "button_text": "Shop Now",
+        "button_link": "shopify://collections/all",
+        "overlay_opacity": 30,
+        "section_height": 85,
+        "enable_parallax": false,
+        "video_bg_enabled": false
+      }
+    },
+    "marquee": {
+      "type": "marquee",
+      "settings": {
+        "enable_animation": true,
+        "speed": 25,
+        "direction": "left",
+        "pause_on_hover": true,
+        "bg_color": "#000000",
+        "text_color": "#ffffff",
+        "font_size": 14,
+        "font_size_mobile": 12,
+        "font_weight": 600,
+        "padding_top": 10,
+        "padding_bottom": 10
+      },
+      "blocks": {
+        "marquee_1": {
+          "type": "text",
+          "settings": {
+            "text": "Free Shipping on Orders Over $50",
+            "icon": "ship"
+          }
+        },
+        "marquee_2": {
+          "type": "text",
+          "settings": {
+            "text": "30-Day Easy Returns",
+            "icon": "check"
+          }
+        },
+        "marquee_3": {
+          "type": "text",
+          "settings": {
+            "text": "New Arrivals Every Week",
+            "icon": "star"
+          }
+        },
+        "marquee_4": {
+          "type": "text",
+          "settings": {
+            "text": "Secure Checkout",
+            "icon": "check"
+          }
+        }
+      },
+      "block_order": ["marquee_1", "marquee_2", "marquee_3", "marquee_4"]
+    },
+    "featured_collection": {
+      "type": "featured-collection",
+      "settings": {
+        "title": "Bestsellers",
+        "heading_size": "h2",
+        "products_to_show": 8,
+        "enable_desktop_slider": true,
+        "columns_desktop": 4,
+        "image_ratio": "portrait",
+        "show_secondary_image": true,
+        "show_badges": true,
+        "show_quick_buy": true,
+        "quick_buy_style": "icon",
+        "show_quick_view": true,
+        "show_view_all": true,
+        "view_all_label": "View All",
+        "bg_color": "#ffffff",
+        "padding_top": 60,
+        "padding_bottom": 60
+      }
+    },
+    "editorial": {
+      "type": "editorial-text-image",
+      "settings": {
+        "layout": "image_left",
+        "ratio": "50_50",
+        "vertical_align": "center",
+        "gap": 48,
+        "enable_image_zoom": true,
+        "animation": "fade",
+        "corner_radius": 8,
+        "bg_color": "#ffffff",
+        "text_color": "#000000",
+        "padding_top": 60,
+        "padding_bottom": 60
+      },
+      "blocks": {
+        "editorial_caption": {
+          "type": "caption",
+          "settings": {
+            "caption": "Our Story"
+          }
+        },
+        "editorial_heading": {
+          "type": "heading",
+          "settings": {
+            "heading": "Quality You Can Feel",
+            "size": "h2",
+            "tag": "h2"
+          }
+        },
+        "editorial_text": {
+          "type": "text",
+          "settings": {
+            "text": "<p>We believe in creating products that stand the test of time. Every piece in our collection is crafted with care, using premium materials and sustainable practices that respect both people and planet.</p>"
+          }
+        },
+        "editorial_button": {
+          "type": "button",
+          "settings": {
+            "label": "Learn More",
+            "link": "",
+            "style": "primary"
+          }
+        }
+      },
+      "block_order": ["editorial_caption", "editorial_heading", "editorial_text", "editorial_button"]
+    },
+    "trust_badges": {
+      "type": "trust-badges",
+      "settings": {
+        "layout": "horizontal",
+        "columns_desktop": 4,
+        "badge_style": "minimal",
+        "icon_size": 40,
+        "icon_color": "#000000",
+        "bg_color": "#f9f9f9",
+        "padding_top": 32,
+        "padding_bottom": 32
+      },
+      "blocks": {
+        "badge_shipping": {
+          "type": "badge_icon",
+          "settings": {
+            "icon": "shipping",
+            "title": "Free Shipping",
+            "subheading": "On orders over $50"
+          }
+        },
+        "badge_return": {
+          "type": "badge_icon",
+          "settings": {
+            "icon": "return",
+            "title": "Easy Returns",
+            "subheading": "30-day return policy"
+          }
+        },
+        "badge_secure": {
+          "type": "badge_icon",
+          "settings": {
+            "icon": "secure",
+            "title": "Secure Checkout",
+            "subheading": "SSL encrypted payment"
+          }
+        },
+        "badge_support": {
+          "type": "badge_icon",
+          "settings": {
+            "icon": "support",
+            "title": "Customer Support",
+            "subheading": "Mon-Fri, 9am-5pm"
+          }
+        }
+      },
+      "block_order": ["badge_shipping", "badge_return", "badge_secure", "badge_support"]
+    },
+    "testimonials": {
+      "type": "testimonials",
+      "settings": {
+        "heading": "What Our Customers Say",
+        "bg_color": "#f8f8f8",
+        "text_color": "#000000",
+        "padding_top": 60,
+        "padding_bottom": 60
+      },
+      "blocks": {
+        "review_1": {
+          "type": "review",
+          "settings": {
+            "stars": 5,
+            "text": "Incredible quality! The attention to detail is outstanding. I'll definitely be ordering again.",
+            "author": "Sarah M."
+          }
+        },
+        "review_2": {
+          "type": "review",
+          "settings": {
+            "stars": 5,
+            "text": "Fast shipping and beautifully packaged. The product exceeded my expectations in every way.",
+            "author": "James R."
+          }
+        },
+        "review_3": {
+          "type": "review",
+          "settings": {
+            "stars": 5,
+            "text": "Finally found a brand that combines style with sustainability. Love everything about this shop!",
+            "author": "Emma K."
+          }
+        },
+        "review_4": {
+          "type": "review",
+          "settings": {
+            "stars": 4,
+            "text": "Great customer service and amazing products. The size guide was super helpful too.",
+            "author": "Michael T."
+          }
+        }
+      },
+      "block_order": ["review_1", "review_2", "review_3", "review_4"]
+    },
+    "logo_showcase": {
+      "type": "logo-showcase",
+      "settings": {
+        "layout_style": "ticker",
+        "heading": "As Seen In",
+        "show_heading": true,
+        "heading_tag": "p",
+        "animation_speed": 20,
+        "animation_direction": "left",
+        "pause_on_hover": true,
+        "logo_height": 40,
+        "logo_max_width": 140,
+        "logo_spacing": 40,
+        "logo_opacity": 70,
+        "grayscale": true,
+        "bg_color": "#ffffff",
+        "text_color": "#333333",
+        "padding_top": 40,
+        "padding_bottom": 40
+      },
+      "blocks": {
+        "logo_1": {
+          "type": "logo",
+          "settings": {
+            "alt_text": "Partner 1"
+          }
+        },
+        "logo_2": {
+          "type": "logo",
+          "settings": {
+            "alt_text": "Partner 2"
+          }
+        },
+        "logo_3": {
+          "type": "logo",
+          "settings": {
+            "alt_text": "Partner 3"
+          }
+        },
+        "logo_4": {
+          "type": "logo",
+          "settings": {
+            "alt_text": "Partner 4"
+          }
+        },
+        "logo_5": {
+          "type": "logo",
+          "settings": {
+            "alt_text": "Partner 5"
+          }
+        }
+      },
+      "block_order": ["logo_1", "logo_2", "logo_3", "logo_4", "logo_5"]
+    },
+    "newsletter": {
+      "type": "newsletter",
+      "settings": {
+        "heading": "Stay in the Loop",
+        "text": "<p>Subscribe to our newsletter for exclusive offers, new arrivals, and style inspiration delivered straight to your inbox.</p>",
+        "placeholder": "Enter your email",
+        "button_text": "Subscribe",
+        "disclaimer": "We respect your privacy. Unsubscribe anytime.",
+        "alignment": "center",
+        "bg_color": "#f5f5f5",
+        "text_color": "#333333",
+        "accent_color": "#000000",
+        "padding_top": 60,
+        "padding_bottom": 60
+      }
     }
   },
   "order": [
-    "main"
+    "hero_banner",
+    "marquee",
+    "featured_collection",
+    "editorial",
+    "trust_badges",
+    "testimonials",
+    "logo_showcase",
+    "newsletter"
   ]
 }

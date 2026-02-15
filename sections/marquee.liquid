@@ -1,22 +1,28 @@
 {% comment %}
-  Lean Marquee (Laufschrift)
-  Modus: Statisch (0) oder Animiert (1-20)
+  Infinite Marquee Hybrid (Statisch & Animiert)
+  Features: Icons, Mobile Font Control, Static/Animated Switch
 {% endcomment %}
 
-<div class="marquee-section section-{{ section.id }}">
-  <div class="marquee-track-wrapper">
+<div class="marquee-section section-{{ section.id }}-padding">
+  <div class="marquee-container">
     
-    {%- if section.settings.speed > 0 -%}
-      <div class="marquee-track animated">
-        {%- for i in (1..10) -%}
-          <div class="marquee-content">
+    {%- if section.settings.enable_animation -%}
+      <div class="marquee-track {% if section.settings.pause_on_hover %}pause-on-hover{% endif %}">
+        {%- for i in (1..2) -%}
+          <div class="marquee-content" {% if i == 2 %}aria-hidden="true"{% endif %}>
             {%- for block in section.blocks -%}
-              <span class="marquee-item" {{ block.shopify_attributes }}>
-                {{ block.settings.text }}
-                {%- if section.settings.separator != blank -%}
-                  <span class="marquee-separator">{{ section.settings.separator }}</span>
+              <div class="marquee-item" {{ block.shopify_attributes }}>
+                {%- if block.settings.icon != 'none' -%}
+                  <span class="marquee-icon">
+                    {% if block.settings.icon == 'star' %}★{% endif %}
+                    {% if block.settings.icon == 'check' %}✔{% endif %}
+                    {% if block.settings.icon == 'fire' %}🔥{% endif %}
+                    {% if block.settings.icon == 'ship' %}🚚{% endif %}
+                    {% if block.settings.icon == 'flash' %}⚡{% endif %}
+                  </span>
                 {%- endif -%}
-              </span>
+                <span class="marquee-text">{{ block.settings.text }}</span>
+              </div>
             {%- endfor -%}
           </div>
         {%- endfor -%}
@@ -25,14 +31,18 @@
     {%- else -%}
       <div class="marquee-static">
         {%- for block in section.blocks -%}
-          <span class="marquee-item" {{ block.shopify_attributes }}>
-            {{ block.settings.text }}
-            {%- unless forloop.last -%}
-              {%- if section.settings.separator != blank -%}
-                <span class="marquee-separator">{{ section.settings.separator }}</span>
-              {%- endif -%}
-            {%- endunless -%}
-          </span>
+          <div class="marquee-item static-item" {{ block.shopify_attributes }}>
+            {%- if block.settings.icon != 'none' -%}
+              <span class="marquee-icon">
+                {% if block.settings.icon == 'star' %}★{% endif %}
+                {% if block.settings.icon == 'check' %}✔{% endif %}
+                {% if block.settings.icon == 'fire' %}🔥{% endif %}
+                {% if block.settings.icon == 'ship' %}🚚{% endif %}
+                {% if block.settings.icon == 'flash' %}⚡{% endif %}
+              </span>
+            {%- endif -%}
+            <span class="marquee-text">{{ block.settings.text }}</span>
+          </div>
         {%- endfor -%}
       </div>
     {%- endif -%}
@@ -41,96 +51,127 @@
 </div>
 
 <style>
-  .section-{{ section.id }} {
+  .section-{{ section.id }}-padding {
+    padding-top: {{ section.settings.padding_top }}px;
+    padding-bottom: {{ section.settings.padding_bottom }}px;
     background-color: {{ section.settings.bg_color }};
     color: {{ section.settings.text_color }};
-    padding: {{ section.settings.padding_y }}px 0;
     overflow: hidden;
-    position: relative;
-    border-top: 1px solid rgba(0,0,0,0.05);
     border-bottom: 1px solid rgba(0,0,0,0.05);
   }
 
+  .marquee-container {
+    width: 100%;
+    user-select: none;
+  }
+
+  /* === STYLES FÜR TEXT & ICON === */
   .marquee-item {
-    font-size: {{ section.settings.font_size }}px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
     display: inline-flex;
     align-items: center;
+    padding: 0 40px; /* Abstand im Slider */
   }
 
-  .marquee-separator {
-    margin: 0 30px;
-    opacity: 0.6;
+  .marquee-text {
+    font-size: {{ section.settings.font_size }}px;
+    font-weight: {{ section.settings.font_weight }};
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    line-height: 1.2;
+    white-space: nowrap;
   }
 
-  /* === ANIMATION MODUS === */
-  .marquee-track.animated {
+  .marquee-icon {
+    margin-right: 10px;
+    font-size: 1.2em;
+    display: flex; align-items: center;
+  }
+
+  /* === ANIMATION STYLES === */
+  .marquee-track {
     display: flex;
-    width: max-content;
-    /* Berechnung: 65 - (Speed * 3). 
-       Speed 1 = 62s (Langsam)
-       Speed 20 = 5s (Schnell) 
-    */
-    {% assign duration = 65 | minus: section.settings.speed | minus: section.settings.speed | minus: section.settings.speed %}
-    animation: marquee-scroll {{ duration }}s linear infinite;
-  }
-
-  .marquee-content {
-    display: flex;
-    align-items: center;
     flex-shrink: 0;
-  }
-
-  /* === STATISCH MODUS === */
-  .marquee-static {
-    display: flex;
-    justify-content: center; /* Zentriert den Text */
     align-items: center;
-    flex-wrap: wrap; /* Falls Text zu lang, umbrechen */
-    gap: 10px;
-    text-align: center;
-    width: 100%;
-  }
-
-  /* Keyframes */
-  @keyframes marquee-scroll {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(-100%); }
+    white-space: nowrap;
+    animation: scroll {{ section.settings.speed }}s linear infinite;
   }
   
+  .marquee-track.pause-on-hover:hover { animation-play-state: paused; }
+
   {% if section.settings.direction == 'right' %}
-  @keyframes marquee-scroll {
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(0); }
-  }
+    .marquee-track { animation-direction: reverse; }
   {% endif %}
 
+  .marquee-content {
+    display: flex; align-items: center; flex-shrink: 0;
+  }
+
+  @keyframes scroll {
+    from { transform: translateX(0); }
+    to { transform: translateX(-100%); }
+  }
+
+  /* === STATIC STYLES === */
+  .marquee-static {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap; /* Wichtig für Mobile: Umbruch erlauben */
+    text-align: center;
+    gap: 15px 30px; /* Abstand zwischen Elementen wenn statisch */
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .static-item {
+    padding: 0; /* Kein Padding im Static Mode, wir nutzen Gap */
+  }
+
+  /* === MOBILE ANPASSUNG (Variable) === */
+  @media(max-width: 750px) {
+    .marquee-text { 
+      font-size: {{ section.settings.font_size_mobile }}px; 
+      white-space: normal; /* Erlaubt Umbruch auf Handy im Static Mode */
+    }
+    
+    .marquee-item { padding: 0 20px; }
+    
+    .marquee-static { 
+      flex-direction: column; /* Auf Handy untereinander, wenn statisch */
+      gap: 10px;
+    }
+    
+    .static-item { padding: 0; }
+  }
 </style>
 
 {% schema %}
 {
-  "name": "⚡️ Laufschrift (Marquee)",
+  "name": "Laufschrift (Hybrid)",
   "settings": [
     {
       "type": "header",
-      "content": "Animation"
+      "content": "Modus"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_animation",
+      "label": "Animation aktivieren",
+      "default": true,
+      "info": "Wenn deaktiviert, wird der Text zentriert und statisch angezeigt."
     },
     {
       "type": "range",
       "id": "speed",
-      "min": 0,
-      "max": 20,
-      "step": 1,
-      "label": "Geschwindigkeit",
-      "default": 0,
-      "info": "0 = Statisch (Zentriert), 1 = Langsam, 20 = Schnell"
+      "min": 5, "max": 60, "step": 1, "default": 25,
+      "label": "Geschwindigkeit (Sekunden)",
+      "info": "Nur aktiv wenn Animation an ist."
     },
     {
       "type": "select",
       "id": "direction",
-      "label": "Laufrichtung",
+      "label": "Richtung",
       "options": [
         { "value": "left", "label": "Nach Links" },
         { "value": "right", "label": "Nach Rechts" }
@@ -138,8 +179,14 @@
       "default": "left"
     },
     {
+      "type": "checkbox",
+      "id": "pause_on_hover",
+      "label": "Anhalten bei Maus-Hover",
+      "default": true
+    },
+    {
       "type": "header",
-      "content": "Design"
+      "content": "Design & Schrift"
     },
     {
       "type": "color",
@@ -156,51 +203,71 @@
     {
       "type": "range",
       "id": "font_size",
-      "min": 12,
-      "max": 60,
-      "step": 2,
-      "unit": "px",
-      "label": "Schriftgröße",
-      "default": 14
+      "min": 12, "max": 100, "step": 1, "default": 16,
+      "label": "Schriftgröße (Desktop)",
+      "unit": "px"
     },
     {
       "type": "range",
-      "id": "padding_y",
-      "min": 5,
-      "max": 40,
-      "step": 1,
-      "unit": "px",
-      "label": "Innenabstand (Höhe)",
-      "default": 10
+      "id": "font_size_mobile",
+      "min": 10, "max": 50, "step": 1, "default": 12,
+      "label": "Schriftgröße (Mobile)",
+      "unit": "px"
     },
     {
-      "type": "text",
-      "id": "separator",
-      "label": "Trennzeichen",
-      "default": "+++"
+      "type": "range",
+      "id": "font_weight",
+      "min": 300, "max": 900, "step": 100, "default": 700,
+      "label": "Schriftdicke"
+    },
+    {
+      "type": "header",
+      "content": "Abstände"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0, "max": 60, "step": 1, "default": 12, "label": "Innenabstand Oben"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0, "max": 60, "step": 1, "default": 12, "label": "Innenabstand Unten"
     }
   ],
   "blocks": [
     {
       "type": "text",
-      "name": "Text",
+      "name": "Info Element",
       "settings": [
         {
           "type": "text",
           "id": "text",
-          "label": "Inhalt",
+          "label": "Text",
           "default": "Kostenloser Versand"
+        },
+        {
+          "type": "select",
+          "id": "icon",
+          "label": "Icon",
+          "options": [
+            { "value": "none", "label": "Keins" },
+            { "value": "star", "label": "Stern" },
+            { "value": "check", "label": "Haken" },
+            { "value": "fire", "label": "Feuer" },
+            { "value": "ship", "label": "LKW" },
+            { "value": "flash", "label": "Blitz" }
+          ],
+          "default": "none"
         }
       ]
     }
   ],
   "presets": [
     {
-      "name": "⚡️ Laufschrift (Marquee)",
+      "name": "Laufschrift (Hybrid)",
       "blocks": [
-        { "type": "text" },
-        { "type": "text" },
-        { "type": "text" }
+        { "type": "text", "settings": { "text": "Willkommen im Shop", "icon": "star" } }
       ]
     }
   ]

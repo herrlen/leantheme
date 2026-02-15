@@ -78,8 +78,18 @@
   }
 
   .stars {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
     color: #FFD700; /* Gold */
     margin-bottom: 15px;
+  }
+
+  .stars .star-icon {
+    display: inline-block;
+    flex-shrink: 0;
   }
   
   .testimonial-text {

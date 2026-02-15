@@ -60,6 +60,7 @@
                 {%- form 'customer', id: 'FooterNewsletter' -%}
                   <input type="hidden" name="contact[tags]" value="newsletter">
                   <div class="newsletter-form-group">
+                    <label for="NewsletterForm--{{ section.id }}" class="visually-hidden">{{ 'footer.email_placeholder' | t }}</label>
                     <input
                       id="NewsletterForm--{{ section.id }}"
                       type="email"
@@ -70,16 +71,16 @@
                       autocorrect="off"
                       autocapitalize="off"
                       autocomplete="email"
-                      placeholder="E-Mail Adresse"
+                      placeholder="{{ 'footer.email_placeholder' | t }}"
                       required
                     >
-                    <button type="submit" class="newsletter-btn" name="commit">Anmelden</button>
+                    <button type="submit" class="newsletter-btn" name="commit">{{ 'footer.subscribe' | t }}</button>
                   </div>
                   {%- if form.errors -%}
                     <small class="newsletter-error">{{ form.errors.translated_fields['email'] | capitalize }} {{ form.errors.messages['email'] }}</small>
                   {%- endif -%}
                   {%- if form.posted_successfully? -%}
-                    <small class="newsletter-success">Danke für die Anmeldung!</small>
+                    <small class="newsletter-success">{{ 'footer.subscribe_success' | t }}</small>
                   {%- endif -%}
                 {%- endform -%}
               </div>
@@ -90,10 +91,19 @@
     </div>
 
     <div class="footer-bottom">
-      <div class="copyright">
-        &copy; {{ 'now' | date: "%Y" }} {{ shop.name }}. Alle Rechte vorbehalten.
+      <div class="footer-bottom__left">
+        <div class="copyright">
+          &copy; {{ 'now' | date: "%Y" }} {{ shop.name }}. {{ 'footer.all_rights_reserved' | t }}
+        </div>
+        {%- render 'sitemap-meta' -%}
       </div>
-      
+
+      {%- if settings.currency_show_footer -%}
+        <div class="footer-currency">
+          {% render 'currency-switcher', context: 'footer', id_prefix: 'footer' %}
+        </div>
+      {%- endif -%}
+
       {%- if section.settings.show_payment -%}
         <div class="payment-icons">
           {%- for type in shop.enabled_payment_types -%}
@@ -178,8 +188,12 @@
     padding-top: 30px; border-top: 1px solid rgba(255,255,255,0.1);
     font-size: 0.85rem; opacity: 0.6;
   }
+  .footer-bottom__left {
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+  }
   @media(min-width: 750px) {
     .footer-bottom { flex-direction: row; justify-content: space-between; }
+    .footer-bottom__left { align-items: flex-start; }
   }
 
   .payment-icons { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }

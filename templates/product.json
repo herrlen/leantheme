@@ -1,7 +1,73 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
 {
   "sections": {
     "main": {
       "type": "main-product",
+      "blocks": {
+        "vendor": {
+          "type": "vendor",
+          "settings": {}
+        },
+        "title": {
+          "type": "title",
+          "settings": {}
+        },
+        "price": {
+          "type": "price",
+          "settings": {}
+        },
+        "variant_picker": {
+          "type": "variant_picker",
+          "settings": {}
+        },
+        "size_chart": {
+          "type": "size_chart",
+          "settings": {}
+        },
+        "quantity_selector": {
+          "type": "quantity_selector",
+          "settings": {}
+        },
+        "buy_buttons": {
+          "type": "buy_buttons",
+          "settings": {}
+        },
+        "description": {
+          "type": "description",
+          "settings": {}
+        },
+        "collapsible_tab": {
+          "type": "collapsible_tab",
+          "settings": {
+            "heading": "Versand & Rückgabe",
+            "content": "<p>Kostenloser Versand ab 50€. Rückgabe innerhalb von 14 Tagen.</p>"
+          }
+        },
+        "product_tabs": {
+          "type": "product_tabs",
+          "settings": {}
+        }
+      },
+      "block_order": [
+        "vendor",
+        "title",
+        "price",
+        "variant_picker",
+        "size_chart",
+        "quantity_selector",
+        "buy_buttons",
+        "description",
+        "collapsible_tab",
+        "product_tabs"
+      ],
       "settings": {
         "padding_top": 40,
         "padding_bottom": 40

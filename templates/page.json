@@ -10,8 +10,13 @@
 {
   "sections": {
     "main": {
-      "type": "page",
-      "settings": {}
+      "type": "main-page",
+      "settings": {
+        "padding_side": 20,
+        "text_align": "left",
+        "padding_top": 60,
+        "padding_bottom": 60
+      }
     }
   },
   "order": [

@@ -5,10 +5,14 @@
   https://shopify.dev/docs/storefronts/themes/architecture/templates/search
 {% endcomment %}
 
+{% render 'breadcrumbs-wrapper' %}
+
 <h1>{{ 'search.title' | t }}</h1>
 
 <form action="{{ routes.search_url }}" method="get" role="search">
+  <label for="search-input" class="visually-hidden">{{ 'search.title' | t }}</label>
   <input
+    id="search-input"
     type="search"
     size="50"
     name="q"

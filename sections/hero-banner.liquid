@@ -1,37 +1,78 @@
 {% comment %}
   Lean Hero Banner
   Optimiert für LCP (Largest Contentful Paint) und transparenten Header.
+  Unterstützt optional Video-Hintergrund (MP4, YouTube, Vimeo).
 {% endcomment %}
 
-<div class="hero-banner section-{{ section.id }}">
-  <div class="hero-media">
-    {%- if section.settings.image != blank -%}
-      <img
-        src="{{ section.settings.image | image_url: width: 1600 }}"
-        sizes="100vw"
-        loading="eager" 
-        width="{{ section.settings.image.width }}"
-        height="{{ section.settings.image.height }}"
-        alt="{{ section.settings.image.alt | escape }}"
-        class="hero-img {% if section.settings.image_mobile != blank %}hide-mobile{% endif %}"
-      >
-      {%- if section.settings.image_mobile != blank -%}
-        <img
-          src="{{ section.settings.image_mobile | image_url: width: 800 }}"
-          sizes="100vw"
-          loading="eager"
-          width="{{ section.settings.image_mobile.width }}"
-          height="{{ section.settings.image_mobile.height }}"
-          alt="{{ section.settings.image_mobile.alt | escape }}"
-          class="hero-img hide-desktop"
-        >
-      {%- endif -%}
-    {%- else -%}
-      {{ 'lifestyle-2' | placeholder_svg_tag: 'hero-img placeholder' }}
-    {%- endif -%}
+{%- liquid
+  assign hero_has_video = false
+  if section.settings.video_bg_enabled
+    if section.settings.video_bg != blank or section.settings.video_bg_url != blank
+      assign hero_has_video = true
+    endif
+  endif
+-%}
 
-    <div class="hero-overlay" style="opacity: {{ section.settings.overlay_opacity | divided_by: 100.0 }}"></div>
-  </div>
+<div class="hero-banner section-{{ section.id }}">
+  {%- if hero_has_video -%}
+    {%- comment -%} Video Background Mode {%- endcomment -%}
+    {%- render 'video-background',
+      video_mp4: section.settings.video_bg,
+      video_url: section.settings.video_bg_url,
+      fallback_image: section.settings.image,
+      overlay_color: '#000000',
+      overlay_opacity: section.settings.overlay_opacity,
+      mobile_video: section.settings.video_bg_mobile,
+      section_id: section.id,
+      priority: true
+    -%}
+  {%- else -%}
+    {%- comment -%} Image Background Mode {%- endcomment -%}
+    <div
+      class="hero-media"
+      {%- if section.settings.enable_parallax -%}
+        data-parallax
+        data-parallax-speed="{{ section.settings.parallax_speed | default: 3 | times: 0.1 }}"
+        data-parallax-direction="up"
+        data-parallax-mobile="false"
+      {%- endif -%}
+    >
+      <div class="hero-media__inner" {% if section.settings.enable_parallax %}data-parallax-target{% endif %}>
+        {%- if section.settings.image != blank -%}
+          {%- liquid
+            assign desktop_class = 'hero-img'
+            if section.settings.image_mobile != blank
+              assign desktop_class = 'hero-img hide-mobile'
+            endif
+          -%}
+          {%- render 'image-lazy',
+            image: section.settings.image,
+            priority: true,
+            sizes: '100vw',
+            widths: '800,1200,1600,2000',
+            class: desktop_class,
+            wrapper: false,
+            object_fit: 'cover'
+          -%}
+          {%- if section.settings.image_mobile != blank -%}
+            {%- render 'image-lazy',
+              image: section.settings.image_mobile,
+              priority: true,
+              sizes: '100vw',
+              widths: '400,600,800',
+              class: 'hero-img hide-desktop',
+              wrapper: false,
+              object_fit: 'cover'
+            -%}
+          {%- endif -%}
+        {%- else -%}
+          {{ 'lifestyle-2' | placeholder_svg_tag: 'hero-img placeholder' }}
+        {%- endif -%}
+      </div>
+
+      <div class="hero-overlay" style="opacity: {{ section.settings.overlay_opacity | divided_by: 100.0 }}"></div>
+    </div>
+  {%- endif -%}
 
   <div class="hero-content page-width">
     <div class="hero-text-wrapper">
@@ -43,9 +84,9 @@
         <p class="hero-subheading">{{ section.settings.text }}</p>
       {%- endif -%}
 
-      {%- if section.settings.button_label != blank -%}
+      {%- if section.settings.button_text != blank -%}
         <a href="{{ section.settings.button_link }}" class="button-primary hero-btn">
-          {{ section.settings.button_label }}
+          {{ section.settings.button_text }}
         </a>
       {%- endif -%}
     </div>
@@ -73,11 +114,34 @@
     z-index: 1;
   }
 
+  .hero-media__inner {
+    width: 100%;
+    height: 100%;
+  }
+
   .hero-img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
+  }
+
+  /* Parallax: target needs extra height to prevent gaps */
+  [data-parallax] .hero-media__inner {
+    height: 120%;
+    position: absolute;
+    top: -10%;
+    left: 0;
+    width: 100%;
+    will-change: transform;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    [data-parallax] .hero-media__inner {
+      height: 100%;
+      top: 0;
+      transform: none !important;
+    }
   }
 
   .placeholder {
@@ -159,13 +223,42 @@
       "label": "Mobile Bild (Optional)"
     },
     {
+      "type": "header",
+      "content": "Video-Hintergrund"
+    },
+    {
+      "type": "checkbox",
+      "id": "video_bg_enabled",
+      "label": "Video-Hintergrund aktivieren",
+      "default": false,
+      "info": "Ersetzt das Hintergrundbild durch ein Video. Das Desktop-Bild wird als Fallback verwendet."
+    },
+    {
+      "type": "video",
+      "id": "video_bg",
+      "label": "Video (MP4 Upload)"
+    },
+    {
+      "type": "text",
+      "id": "video_bg_url",
+      "label": "Video URL (YouTube / Vimeo)",
+      "info": "Wird nur verwendet wenn kein MP4 hochgeladen ist."
+    },
+    {
+      "type": "checkbox",
+      "id": "video_bg_mobile",
+      "label": "Video auch auf Mobile",
+      "default": false,
+      "info": "Deaktiviert: Auf Mobile wird nur das Fallback-Bild angezeigt."
+    },
+    {
       "type": "range",
       "id": "overlay_opacity",
       "min": 0,
       "max": 90,
       "step": 5,
       "unit": "%",
-      "label": "Bild abdunkeln",
+      "label": "Bild/Video abdunkeln",
       "default": 30
     },
     {
@@ -177,6 +270,27 @@
       "unit": "vh",
       "label": "Höhe (Bildschirm %)",
       "default": 85
+    },
+    {
+      "type": "header",
+      "content": "Parallax"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_parallax",
+      "label": "Parallax-Effekt aktivieren",
+      "default": false,
+      "info": "Sanfter Scroll-Effekt auf dem Hintergrundbild. Nur bei Bild-Modus (nicht Video). Wird bei prefers-reduced-motion deaktiviert."
+    },
+    {
+      "type": "range",
+      "id": "parallax_speed",
+      "min": 1,
+      "max": 9,
+      "step": 1,
+      "label": "Parallax Geschwindigkeit",
+      "default": 3,
+      "info": "1 = Subtil, 9 = Stark"
     },
     {
       "type": "text",
@@ -192,7 +306,7 @@
     },
     {
       "type": "text",
-      "id": "button_label",
+      "id": "button_text",
       "label": "Button Text",
       "default": "Jetzt shoppen"
     },

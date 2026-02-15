@@ -1,6 +1,38 @@
-<div class="collection-section section-{{ section.id }}-padding">
+{%- comment -%}
+  Main Collection Section
+  Integrates product grid, filtering (Storefront Filtering API),
+  sorting, active filters, pagination, and mobile filter drawer.
+{%- endcomment -%}
+
+{%- liquid
+  assign per_page = section.settings.products_per_page | default: 16
+  assign columns = section.settings.columns_desktop | default: 4
+  assign enable_filters = section.settings.enable_filters
+  assign enable_sorting = section.settings.enable_sorting
+  assign filter_position = section.settings.filter_position | default: 'sidebar'
+  assign pagination_style = section.settings.pagination_style | default: 'paginated'
+  assign has_filters = false
+  if enable_filters and collection.filters.size > 0
+    assign has_filters = true
+  endif
+  assign show_collection_nav = section.settings.show_collection_nav | default: false
+  assign has_sidebar = false
+  if has_filters and filter_position == 'sidebar'
+    assign has_sidebar = true
+  endif
+  if show_collection_nav
+    assign has_sidebar = true
+  endif
+-%}
+
+<div
+  class="collection-section section-{{ section.id }}-padding"
+  data-collection-section-id="{{ section.id }}"
+>
   <div class="page-width">
-    
+    {% render 'breadcrumbs-wrapper' %}
+
+    {%- comment -%} Collection Header {%- endcomment -%}
     <div class="collection-header">
       <h1 class="collection-title">{{ collection.title }}</h1>
       {%- if collection.description != blank -%}
@@ -8,82 +40,1012 @@
       {%- endif -%}
     </div>
 
-    {%- paginate collection.products by 16 -%}
-      <div class="product-grid">
-        {%- for product in collection.products -%}
-          <a href="{{ product.url }}" class="product-card">
-            <div class="card-media">
-              <img src="{{ product.featured_image | img_url: '600x' }}" 
-                   alt="{{ product.featured_image.alt | escape }}" 
-                   width="600"
-                   height="600"
-                   loading="lazy" 
-                   style="width: 100%; height: 100%; object-fit: cover;">
-            </div>
-            <div class="card-info">
-              <h3 class="card-title">{{ product.title }}</h3>
-              <div class="card-price">
-                {% if product.compare_at_price > product.price %}<span class="compare">{{ product.compare_at_price | money }}</span>{% endif %}
-                <span>{{ product.price | money }}</span>
-              </div>
-            </div>
-          </a>
-        {%- endfor -%}
+    {%- comment -%} Toolbar: Count + Filter Toggle + Sorting {%- endcomment -%}
+    <div class="collection-toolbar">
+      <div class="collection-toolbar__left">
+        <p class="collection-toolbar__count" id="CollectionProductCount">
+          {{ 'collections.product_count' | t: count: collection.products_count }}
+        </p>
+
+        {%- if has_filters -%}
+          <button
+            type="button"
+            class="collection-toolbar__filter-btn{% if filter_position == 'sidebar' %} collection-toolbar__filter-btn--mobile-only{% endif %}"
+            data-filter-toggle
+            aria-expanded="false"
+            aria-controls="FilterDrawer"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <line x1="4" y1="6" x2="20" y2="6"></line>
+              <line x1="4" y1="12" x2="16" y2="12"></line>
+              <line x1="4" y1="18" x2="12" y2="18"></line>
+            </svg>
+            {{ 'collections.filtering.filter' | t | default: 'Filter' }}
+          </button>
+        {%- endif -%}
       </div>
 
-      {%- if paginate.pages > 1 -%}
-        <div class="pagination">
-          {{ paginate | default_pagination }}
-        </div>
+      <div class="collection-toolbar__right">
+        {%- if enable_sorting -%}
+          {% render 'collection-sorting' %}
+        {%- endif -%}
+      </div>
+    </div>
+
+    {%- comment -%} Active Filters {%- endcomment -%}
+    {%- if has_filters -%}
+      {% render 'active-filters' %}
+    {%- endif -%}
+
+    {%- comment -%} Main Layout {%- endcomment -%}
+    <div class="collection-layout{% if has_sidebar %} collection-layout--sidebar{% endif %}">
+
+      {%- comment -%} Desktop Sidebar: Navigation + Filters {%- endcomment -%}
+      {%- if has_sidebar -%}
+        <aside class="collection-sidebar" aria-label="{{ 'collections.filtering.filter' | t | default: 'Filter' }}">
+          {%- if show_collection_nav -%}
+            {% render 'collection-sidebar-nav' %}
+          {%- endif -%}
+          {%- if has_filters and filter_position == 'sidebar' -%}
+            {% render 'collection-filters' %}
+          {%- endif -%}
+        </aside>
       {%- endif -%}
-    {%- endpaginate -%}
+
+      {%- comment -%} Products Area {%- endcomment -%}
+      <div class="collection-main">
+
+        {%- comment -%} Horizontal Filters (above grid) {%- endcomment -%}
+        {%- if has_filters and filter_position == 'horizontal' -%}
+          <div class="collection-filters-horizontal">
+            {% render 'collection-filters' %}
+          </div>
+        {%- endif -%}
+
+        {%- paginate collection.products by per_page -%}
+          {%- liquid
+            assign is_infinite_mode = false
+            if pagination_style == 'infinite' or pagination_style == 'load_more'
+              assign is_infinite_mode = true
+            endif
+            assign scroll_threshold = section.settings.scroll_threshold | default: 200
+          -%}
+
+          {%- comment -%} Infinite Scroll Container {%- endcomment -%}
+          <div
+            {% if is_infinite_mode %}
+              data-infinite-scroll
+              data-section-id="main-collection"
+              data-infinite-mode="{{ pagination_style }}"
+              data-infinite-threshold="{{ scroll_threshold }}"
+            {% endif %}
+          >
+            {%- comment -%} Product Grid {%- endcomment -%}
+            <div
+              class="collection-grid collection-grid--{{ columns }}-col"
+              id="CollectionProducts"
+              role="region"
+              aria-label="{{ 'collections.title' | t | default: 'Products' }}"
+              {% if is_infinite_mode %}data-infinite-grid{% endif %}
+            >
+              {%- if collection.products.size > 0 -%}
+                {%- for product in collection.products -%}
+                  {%- render 'product-card',
+                    card_product: product,
+                    index: forloop.index,
+                    eager_count: section.settings.eager_images,
+                    show_vendor: section.settings.show_vendor,
+                    show_rating: section.settings.show_rating,
+                    image_ratio: section.settings.image_ratio,
+                    show_quick_buy: section.settings.show_quick_buy,
+                    show_quick_view: section.settings.show_quick_view
+                  -%}
+                {%- endfor -%}
+              {%- else -%}
+                <div class="collection-empty">
+                  <p>{{ 'collections.empty' | t | default: 'No products found' }}</p>
+                  {%- if collection.filters.size > 0 -%}
+                    <a href="{{ collection.url }}" class="collection-empty__clear" data-filter-remove>
+                      {{ 'collections.filtering.clear_all' | t | default: 'Clear all filters' }}
+                    </a>
+                  {%- endif -%}
+                </div>
+              {%- endif -%}
+            </div>
+
+            {%- comment -%} Infinite Scroll: Sentinel, Loader, End Message {%- endcomment -%}
+            {%- if is_infinite_mode and paginate.pages > 1 -%}
+              <div class="infinite-sentinel" data-infinite-sentinel hidden aria-hidden="true"></div>
+
+              <div class="infinite-loader" data-infinite-loader hidden>
+                <div class="infinite-loader__spinner" aria-hidden="true">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-dasharray="31.4 31.4" />
+                  </svg>
+                </div>
+                <span class="visually-hidden">{{ 'collections.infinite_scroll.loading' | t | default: 'Loading products…' }}</span>
+              </div>
+
+              <div class="infinite-end" data-infinite-end hidden>
+                <p>{{ 'collections.infinite_scroll.no_more' | t | default: 'All products loaded' }}</p>
+              </div>
+
+              {%- comment -%} Accessibility status region {%- endcomment -%}
+              <div class="visually-hidden" aria-live="polite" aria-atomic="true" data-infinite-status></div>
+            {%- endif -%}
+
+            {%- comment -%} Pagination {%- endcomment -%}
+            {%- if paginate.pages > 1 -%}
+              <div id="CollectionPagination" data-pagination-wrap>
+                {%- if pagination_style == 'load_more' or pagination_style == 'infinite' -%}
+                  {%- if paginate.next -%}
+                    <div class="collection-load-more">
+                      <a
+                        href="{{ paginate.next.url }}"
+                        class="collection-load-more__btn btn btn--secondary"
+                        data-load-more-btn
+                        data-pagination-next
+                      >
+                        {{ 'collections.filtering.load_more' | t | default: 'Load more' }}
+                      </a>
+                    </div>
+                  {%- endif -%}
+                {%- else -%}
+                  {% render 'pagination', paginate: paginate %}
+                {%- endif -%}
+              </div>
+            {%- endif -%}
+          </div>
+        {%- endpaginate -%}
+      </div>
+    </div>
   </div>
+
+  {%- comment -%} Mobile Filter Drawer {%- endcomment -%}
+  {%- if has_filters -%}
+    <div class="filter-drawer" id="FilterDrawer" aria-label="{{ 'collections.filtering.filter' | t | default: 'Filter' }}">
+      <div class="filter-drawer__header">
+        <h2 class="filter-drawer__title">{{ 'collections.filtering.filter' | t | default: 'Filter' }}</h2>
+        <button type="button" class="filter-drawer__close" data-filter-toggle aria-label="{{ 'accessibility.close' | t | default: 'Close' }}">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="filter-drawer__body" id="FilterDrawerBody">
+        {% render 'collection-filters' %}
+      </div>
+      <div class="filter-drawer__footer">
+        <button type="button" class="filter-drawer__apply btn btn--primary" data-filter-toggle>
+          {{ 'collections.filtering.apply' | t | default: 'Apply' }}
+        </button>
+      </div>
+    </div>
+    <div class="filter-overlay" id="FilterOverlay" data-filter-toggle></div>
+  {%- endif -%}
+
+  {%- comment -%} Live Region for filter status {%- endcomment -%}
+  <div class="visually-hidden" aria-live="polite" aria-atomic="true" data-filter-status></div>
 </div>
+
+<script src="{{ 'collection-filters.js' | asset_url }}" defer="defer"></script>
+
+{%- if pagination_style == 'infinite' or pagination_style == 'load_more' -%}
+  <script src="{{ 'infinite-scroll.js' | asset_url }}" defer="defer"></script>
+{%- endif -%}
 
 <style>
   .section-{{ section.id }}-padding {
     padding-top: {{ section.settings.padding_top | default: 60 }}px;
     padding-bottom: {{ section.settings.padding_bottom | default: 60 }}px;
   }
-  .page-width {
-    margin: 0 auto; max-width: 1200px;
-    padding-left: clamp(20px, {{ section.settings.padding_side | default: 20 }}px, 10vw);
-    padding-right: clamp(20px, {{ section.settings.padding_side | default: 20 }}px, 10vw);
-  }
-  
-  .collection-header { text-align: center; margin-bottom: 50px; }
-  .collection-title { font-size: 2.5rem; margin-bottom: 10px; }
+
+  /* ===== Header ===== */
+  .collection-header { text-align: center; margin-bottom: 40px; }
+  .collection-title { font-size: 2.5rem; margin: 0 0 10px; }
   .collection-description { max-width: 800px; margin: 0 auto; opacity: 0.8; }
 
-  .product-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px 15px; }
-  @media(min-width: 750px) {
-    .product-grid { grid-template-columns: repeat({{ section.settings.columns_desktop | default: 4 }}, 1fr); gap: 40px 30px; }
+  /* ===== Toolbar ===== */
+  .collection-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--color-border, #e5e5e5);
+  }
+  .collection-toolbar__left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .collection-toolbar__right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .collection-toolbar__count {
+    font-size: 0.875rem;
+    color: var(--color-text-secondary, #6b7280);
+    margin: 0;
+  }
+  .collection-toolbar__filter-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    font-size: 0.875rem;
+    border: 1px solid var(--color-border, #e5e5e5);
+    border-radius: var(--input-border-radius, 4px);
+    background: transparent;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  .collection-toolbar__filter-btn:hover {
+    border-color: var(--color-text, #000);
   }
 
-  .product-card { text-decoration: none; color: inherit; display: block; }
-  .card-media { position: relative; width: 100%; aspect-ratio: 1/1; overflow: hidden; border-radius: 4px; background: #f4f4f4; }
-  
-  /* Bild Styles angepasst */
-  .card-media img { display: block; transition: transform 0.3s; }
-  .product-card:hover .card-media img { transform: scale(1.02); }
-  
-  .card-info { margin-top: 10px; display: flex; justify-content: space-between; font-size: 1rem; }
-  .card-price { font-weight: bold; white-space: nowrap; margin-left: 10px; }
-  .compare { text-decoration: line-through; opacity: 0.5; margin-right: 5px; font-weight: normal; }
+  /* Sidebar layout: filter btn only on mobile */
+  .collection-toolbar__filter-btn--mobile-only { display: none; }
+  @media (max-width: 989px) {
+    .collection-toolbar__filter-btn--mobile-only { display: inline-flex; }
+  }
 
-  .pagination { margin-top: 50px; text-align: center; display: flex; justify-content: center; gap: 10px; }
-  .pagination span, .pagination a { padding: 8px 12px; border: 1px solid #ddd; text-decoration: none; color: inherit; }
-  .pagination .current { background: #000; color: #fff; border-color: #000; }
+  /* ===== Sorting ===== */
+  .sorting {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .sorting__label {
+    font-size: 0.875rem;
+    white-space: nowrap;
+  }
+  .sorting__select-wrap {
+    position: relative;
+  }
+  .sorting__select {
+    appearance: none;
+    -webkit-appearance: none;
+    padding: 8px 32px 8px 12px;
+    font-size: 0.875rem;
+    border: 1px solid var(--color-border, #e5e5e5);
+    border-radius: var(--input-border-radius, 4px);
+    background: transparent;
+    cursor: pointer;
+    min-width: 160px;
+  }
+  .sorting__chevron {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+  }
+
+  /* ===== Layout ===== */
+  .collection-layout { display: flex; gap: 40px; }
+  .collection-sidebar { flex: 0 0 250px; min-width: 0; }
+  .collection-main { flex: 1; min-width: 0; }
+
+  @media (max-width: 989px) {
+    .collection-layout--sidebar { flex-direction: column; }
+    .collection-sidebar { display: none; }
+  }
+
+  /* ===== Product Grid ===== */
+  .collection-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px 15px;
+    transition: opacity 0.2s;
+  }
+  .collection-grid.is-loading { opacity: 0.4; pointer-events: none; }
+
+  @media (min-width: 750px) {
+    .collection-grid { grid-template-columns: repeat(3, 1fr); gap: 30px 20px; }
+  }
+  @media (min-width: 990px) {
+    .collection-grid--2-col { grid-template-columns: repeat(2, 1fr); }
+    .collection-grid--3-col { grid-template-columns: repeat(3, 1fr); }
+    .collection-grid--4-col { grid-template-columns: repeat(4, 1fr); }
+    .collection-grid--5-col { grid-template-columns: repeat(5, 1fr); }
+  }
+  /* When sidebar is present, reduce columns by 1 at breakpoint */
+  .collection-layout--sidebar .collection-grid--4-col {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .collection-layout--sidebar .collection-grid--5-col {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  /* ===== Empty State ===== */
+  .collection-empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 60px 20px;
+  }
+  .collection-empty p {
+    font-size: 1.1rem;
+    color: var(--color-text-secondary, #6b7280);
+    margin: 0 0 16px;
+  }
+  .collection-empty__clear {
+    font-size: 0.875rem;
+    text-decoration: underline;
+    color: inherit;
+  }
+
+  /* ===== Filter Groups ===== */
+  .filters__form { display: flex; flex-direction: column; gap: 0; }
+
+  .filter-group {
+    border-bottom: 1px solid var(--color-border, #e5e5e5);
+  }
+  .filter-group__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 0;
+    cursor: pointer;
+    list-style: none;
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+  .filter-group__header::-webkit-details-marker { display: none; }
+  .filter-group__title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .filter-group__badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    background: var(--color-primary, #000);
+    color: var(--color-background, #fff);
+    border-radius: 50%;
+  }
+  .filter-group__chevron {
+    transition: transform 0.2s;
+  }
+  .filter-group[open] .filter-group__chevron {
+    transform: rotate(180deg);
+  }
+  .filter-group__content {
+    padding: 0 0 16px;
+  }
+
+  /* Checkbox Filters */
+  .filter-list { list-style: none; margin: 0; padding: 0; }
+  .filter-list__item { margin: 0; }
+  .filter-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 0;
+    cursor: pointer;
+    font-size: 0.875rem;
+  }
+  .filter-checkbox--disabled { opacity: 0.4; cursor: not-allowed; }
+  .filter-checkbox__input { position: absolute; opacity: 0; width: 0; height: 0; }
+  .filter-checkbox__box {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    border: 1.5px solid var(--color-border, #d1d5db);
+    border-radius: 3px;
+    position: relative;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .filter-checkbox__input:checked + .filter-checkbox__box {
+    background: var(--color-primary, #000);
+    border-color: var(--color-primary, #000);
+  }
+  .filter-checkbox__input:checked + .filter-checkbox__box::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 5px;
+    width: 5px;
+    height: 9px;
+    border: solid #fff;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+  .filter-checkbox__input:focus-visible + .filter-checkbox__box {
+    outline: 2px solid var(--color-primary, #000);
+    outline-offset: 2px;
+  }
+  .filter-checkbox__label { flex: 1; }
+  .filter-checkbox__count {
+    color: var(--color-text-secondary, #9ca3af);
+    font-size: 0.8rem;
+  }
+
+  /* Price Range */
+  .filter-price__inputs {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .filter-price__field {
+    flex: 1;
+  }
+  .filter-price__label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--color-text-secondary, #6b7280);
+    margin-bottom: 4px;
+  }
+  .filter-price__input-wrap {
+    position: relative;
+  }
+  .filter-price__currency {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.875rem;
+    color: var(--color-text-secondary, #6b7280);
+    pointer-events: none;
+    line-height: 1;
+  }
+  input[type="number"].filter-price__input {
+    width: 100%;
+    padding: 8px 8px 8px 28px;
+    font-size: 0.875rem;
+    border: 1px solid var(--color-border, #e5e5e5);
+    border-radius: var(--input-border-radius, 4px);
+    -moz-appearance: textfield;
+  }
+  .filter-price__input::-webkit-outer-spin-button,
+  .filter-price__input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  .filter-price__divider {
+    color: var(--color-text-secondary, #9ca3af);
+    padding-top: 18px;
+  }
+
+  /* Boolean Toggle */
+  .filter-toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    padding: 4px 0;
+  }
+  .filter-toggle__input { position: absolute; opacity: 0; width: 0; height: 0; }
+  .filter-toggle__switch {
+    width: 40px;
+    height: 22px;
+    background: var(--color-border, #d1d5db);
+    border-radius: 11px;
+    position: relative;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+  .filter-toggle__switch::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 18px;
+    height: 18px;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform 0.2s;
+  }
+  .filter-toggle__input:checked + .filter-toggle__switch {
+    background: var(--color-primary, #000);
+  }
+  .filter-toggle__input:checked + .filter-toggle__switch::after {
+    transform: translateX(18px);
+  }
+  .filter-toggle__input:focus-visible + .filter-toggle__switch {
+    outline: 2px solid var(--color-primary, #000);
+    outline-offset: 2px;
+  }
+
+  /* ===== Active Filters ===== */
+  .active-filters { margin-bottom: 20px; }
+  .active-filters__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .active-filters__tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    border: 1px solid var(--color-border, #e5e5e5);
+    border-radius: 20px;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .active-filters__tag:hover {
+    border-color: var(--color-text, #000);
+    background: var(--color-background-secondary, #f5f5f5);
+  }
+  .active-filters__clear {
+    font-size: 0.8rem;
+    text-decoration: underline;
+    color: inherit;
+  }
+
+  /* ===== Horizontal Filters ===== */
+  .collection-filters-horizontal {
+    margin-bottom: 20px;
+  }
+  .collection-filters-horizontal .filters__form {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .collection-filters-horizontal .filter-group {
+    border-bottom: none;
+    border: 1px solid var(--color-border, #e5e5e5);
+    border-radius: var(--input-border-radius, 4px);
+    position: relative;
+  }
+  .collection-filters-horizontal .filter-group__header {
+    padding: 10px 14px;
+    font-size: 0.8rem;
+  }
+  .collection-filters-horizontal .filter-group__content {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 10;
+    background: var(--color-background, #fff);
+    border: 1px solid var(--color-border, #e5e5e5);
+    border-radius: var(--input-border-radius, 4px);
+    padding: 16px;
+    min-width: 220px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+
+  /* ===== Load More ===== */
+  .collection-load-more {
+    text-align: center;
+    margin-top: 40px;
+  }
+  .collection-load-more__btn {
+    min-width: 200px;
+  }
+  .collection-load-more__btn.is-loading {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  /* ===== Infinite Scroll ===== */
+  .infinite-sentinel {
+    height: 1px;
+    width: 100%;
+  }
+  .infinite-loader {
+    display: flex;
+    justify-content: center;
+    padding: 30px 0;
+  }
+  .infinite-loader__spinner svg {
+    animation: infinite-spin 1s linear infinite;
+    color: var(--color-text-secondary, #6b7280);
+  }
+  @keyframes infinite-spin {
+    to { transform: rotate(360deg); }
+  }
+  .infinite-end {
+    text-align: center;
+    padding: 30px 0;
+  }
+  .infinite-end p {
+    font-size: 0.875rem;
+    color: var(--color-text-secondary, #6b7280);
+    margin: 0;
+  }
+
+  /* ===== Mobile Filter Drawer ===== */
+  .filter-drawer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    max-width: 360px;
+    height: 100%;
+    background: var(--color-background, #fff);
+    z-index: 1000;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    display: flex;
+    flex-direction: column;
+  }
+  .filter-drawer.is-open {
+    transform: translateX(0);
+  }
+  .filter-drawer__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--color-border, #e5e5e5);
+  }
+  .filter-drawer__title {
+    font-size: 1.1rem;
+    margin: 0;
+  }
+  .filter-drawer__close {
+    background: none;
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+    line-height: 0;
+  }
+  .filter-drawer__body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 20px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .filter-drawer__footer {
+    padding: 16px 20px;
+    border-top: 1px solid var(--color-border, #e5e5e5);
+  }
+  .filter-drawer__apply {
+    width: 100%;
+  }
+  .filter-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 999;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s;
+  }
+  .filter-overlay.is-visible {
+    opacity: 1;
+    visibility: visible;
+  }
+  body.no-scroll { overflow: hidden; }
+
+  @media (min-width: 990px) {
+    .filter-drawer,
+    .filter-overlay { display: none !important; }
+  }
+
+  /* ===== Collection Sidebar Nav ===== */
+  .collection-sidebar-nav {
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--color-border, #e5e5e5);
+  }
+  .collection-sidebar-nav__title {
+    font-size: 0.875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0 0 12px;
+  }
+  .collection-sidebar-nav__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .collection-sidebar-nav__item {
+    margin-bottom: 2px;
+  }
+  .collection-sidebar-nav__parent {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .collection-sidebar-nav__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 0;
+    font-size: 0.875rem;
+    text-decoration: none;
+    color: inherit;
+    transition: color 0.15s;
+  }
+  .collection-sidebar-nav__link:hover {
+    color: var(--color-primary, #000);
+  }
+  .collection-sidebar-nav__link.is-active {
+    font-weight: 700;
+    color: var(--color-primary, #000);
+  }
+  .collection-sidebar-nav__count {
+    font-size: 0.75rem;
+    color: var(--color-text-secondary, #9ca3af);
+    font-weight: 400;
+  }
+  .collection-sidebar-nav__toggle {
+    background: none;
+    border: none;
+    padding: 6px;
+    cursor: pointer;
+    line-height: 0;
+    transition: transform 0.2s;
+  }
+  .collection-sidebar-nav__toggle[aria-expanded="true"] {
+    transform: rotate(180deg);
+  }
+  .collection-sidebar-nav__children {
+    list-style: none;
+    margin: 0;
+    padding: 0 0 0 16px;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+  }
+  .collection-sidebar-nav__children.is-visible,
+  .collection-sidebar-nav__item.is-expanded .collection-sidebar-nav__children {
+    max-height: 500px;
+  }
+  .collection-sidebar-nav__grandchildren {
+    list-style: none;
+    margin: 0;
+    padding: 0 0 0 16px;
+  }
+
+  /* ===== Filter Swatches ===== */
+  .filter-swatches { border: none; padding: 0; margin: 0; }
+  .filter-swatches__grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .filter-swatch {
+    position: relative;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+  }
+  .filter-swatch__input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  .filter-swatch__visual {
+    width: var(--swatch-size, 32px);
+    height: var(--swatch-size, 32px);
+    border: 2px solid transparent;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+    overflow: hidden;
+  }
+  .filter-swatch--circle .filter-swatch__visual { border-radius: 50%; }
+  .filter-swatch--square .filter-swatch__visual { border-radius: 4px; }
+  .filter-swatch--rounded .filter-swatch__visual { border-radius: 8px; }
+  .filter-swatch--light .filter-swatch__visual { border-color: #ddd; }
+  .filter-swatch:hover .filter-swatch__visual { transform: scale(1.1); }
+  .filter-swatch__input:checked + .filter-swatch__visual,
+  .filter-swatch--selected .filter-swatch__visual {
+    border-color: var(--color-primary, #000);
+    box-shadow: 0 0 0 2px var(--color-background, #fff), 0 0 0 4px var(--color-primary, #000);
+  }
+  .filter-swatch__input:focus-visible + .filter-swatch__visual {
+    outline: 2px solid var(--color-primary, #000);
+    outline-offset: 4px;
+  }
+  .filter-swatch__check { opacity: 0; transition: opacity 0.15s; }
+  .filter-swatch__input:checked + .filter-swatch__visual .filter-swatch__check,
+  .filter-swatch--selected .filter-swatch__check { opacity: 1; }
+  .filter-swatch--disabled { cursor: not-allowed; }
+  .filter-swatch--faded .filter-swatch__visual { opacity: 0.35; }
+  .filter-swatch__label {
+    font-size: 0.7rem;
+    text-align: center;
+    max-width: calc(var(--swatch-size, 32px) + 12px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--color-text-secondary, #6b7280);
+  }
 </style>
 
 {% schema %}
 {
-  "name": "Kategorie Grid",
+  "name": "Collection Grid",
+  "class": "section-main-collection",
   "settings": [
-    { "type": "range", "id": "columns_desktop", "min": 2, "max": 5, "step": 1, "default": 4, "label": "Spalten Desktop" },
-    { "type": "range", "id": "padding_side", "min": 20, "max": 200, "step": 10, "default": 20, "label": "Seitlicher Abstand" },
-    { "type": "range", "id": "padding_top", "min": 0, "max": 100, "step": 4, "default": 60, "label": "Abstand oben" },
-    { "type": "range", "id": "padding_bottom", "min": 0, "max": 100, "step": 4, "default": 60, "label": "Abstand unten" }
+    {
+      "type": "header",
+      "content": "Grid"
+    },
+    {
+      "type": "range",
+      "id": "columns_desktop",
+      "min": 2,
+      "max": 5,
+      "step": 1,
+      "default": 4,
+      "label": "Desktop columns"
+    },
+    {
+      "type": "range",
+      "id": "products_per_page",
+      "min": 8,
+      "max": 48,
+      "step": 4,
+      "default": 16,
+      "label": "Products per page"
+    },
+    {
+      "type": "range",
+      "id": "eager_images",
+      "min": 2,
+      "max": 8,
+      "step": 1,
+      "default": 4,
+      "label": "Eager loaded images",
+      "info": "Number of above-the-fold images without lazy loading"
+    },
+    {
+      "type": "select",
+      "id": "image_ratio",
+      "label": "Image ratio",
+      "default": "portrait",
+      "options": [
+        { "value": "square", "label": "Square (1:1)" },
+        { "value": "portrait", "label": "Portrait (3:4)" },
+        { "value": "3/4", "label": "Landscape (4:3)" },
+        { "value": "16/9", "label": "Widescreen (16:9)" }
+      ]
+    },
+    {
+      "type": "checkbox",
+      "id": "show_vendor",
+      "default": false,
+      "label": "Show vendor"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_rating",
+      "default": false,
+      "label": "Show rating"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_quick_buy",
+      "default": true,
+      "label": "Show quick buy"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_quick_view",
+      "default": true,
+      "label": "Show quick view"
+    },
+    {
+      "type": "header",
+      "content": "Filtering"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_filters",
+      "default": true,
+      "label": "Enable filters"
+    },
+    {
+      "type": "select",
+      "id": "filter_position",
+      "label": "Filter position (desktop)",
+      "default": "sidebar",
+      "options": [
+        { "value": "sidebar", "label": "Sidebar" },
+        { "value": "horizontal", "label": "Horizontal" },
+        { "value": "drawer", "label": "Drawer only" }
+      ]
+    },
+    {
+      "type": "checkbox",
+      "id": "filters_collapsed",
+      "default": false,
+      "label": "Collapse filter groups by default"
+    },
+    {
+      "type": "checkbox",
+      "id": "filters_show_count",
+      "default": true,
+      "label": "Show filter counts"
+    },
+    {
+      "type": "header",
+      "content": "Collection Navigation"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_collection_nav",
+      "default": false,
+      "label": "Show collection navigation",
+      "info": "Displays a category sidebar navigation above filters. Requires a 'collections' menu in Navigation."
+    },
+    {
+      "type": "header",
+      "content": "Sorting"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_sorting",
+      "default": true,
+      "label": "Enable sorting"
+    },
+    {
+      "type": "header",
+      "content": "Pagination"
+    },
+    {
+      "type": "select",
+      "id": "pagination_style",
+      "label": "Pagination style",
+      "default": "paginated",
+      "options": [
+        { "value": "paginated", "label": "Paginated" },
+        { "value": "load_more", "label": "Load more" },
+        { "value": "infinite", "label": "Infinite scroll" }
+      ]
+    },
+    {
+      "type": "range",
+      "id": "scroll_threshold",
+      "min": 100,
+      "max": 500,
+      "step": 50,
+      "default": 200,
+      "unit": "px",
+      "label": "Scroll threshold",
+      "info": "How far before the end of the grid to trigger loading (infinite scroll only)"
+    },
+    {
+      "type": "header",
+      "content": "Spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "default": 60,
+      "unit": "px",
+      "label": "Top padding"
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "default": 60,
+      "unit": "px",
+      "label": "Bottom padding"
+    }
   ]
 }
 {% endschema %}

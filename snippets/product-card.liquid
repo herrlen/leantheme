@@ -1,59 +1,502 @@
-{% comment %}
-  Renders a product card
-  Accepts:
-  - card_product: {Object} The product object to render
-{% endcomment %}
+{% doc %}
+  Product Card - Zentrales Snippet für Produkt-Cards
+  Wiederverwendbar in allen Collection/Product-Grid Sections.
 
-<div class="product-card">
-  <div class="card-image-wrapper">
-    <a href="{{ card_product.url }}">
+  @param {object} card_product - Das Produkt-Objekt (required)
+  @param {number} [index] - Position in Liste für eager/lazy Erkennung
+  @param {number} [eager_count] - Anzahl der eager geladenen Bilder (default: 4)
+  @param {boolean} [show_hover_image] - Sekundäres Bild bei Hover anzeigen (default: true)
+  @param {string} [image_ratio] - Seitenverhältnis: 'square', 'portrait', '3/4', '16/9' (default: portrait)
+  @param {boolean} [show_quick_buy] - Quick Buy Button anzeigen (default: true)
+  @param {string} [quick_buy_style] - 'icon', 'text', 'text_and_icon' (default: 'icon')
+  @param {string} [quick_buy_text] - Button-Text (default: 'Schnellkauf')
+  @param {boolean} [show_quick_view] - Quick View für Varianten (default: true)
+  @param {boolean} [show_vendor] - Hersteller anzeigen (default: false)
+  @param {boolean} [show_rating] - Bewertungen anzeigen (default: false)
+  @param {boolean} [show_swatches] - Farbswatches anzeigen (default: true)
+
+  @example
+  {% render 'product-card', card_product: product %}
+  {% render 'product-card', card_product: product, show_quick_buy: true, quick_buy_style: 'text_and_icon' %}
+{% enddoc %}
+
+{%- liquid
+  # Default values
+  assign show_hover = show_hover_image | default: true
+  assign ratio = image_ratio | default: 'portrait'
+  assign eager = eager_count | default: 4
+  assign quick_buy = show_quick_buy | default: true
+  assign qb_style = quick_buy_style | default: 'icon'
+  assign qb_text = quick_buy_text | default: 'Schnellkauf'
+  assign quick_view = show_quick_view | default: true
+  assign show_vendor_name = show_vendor | default: false
+  assign show_rating_stars = show_rating | default: false
+  assign show_card_swatches = show_swatches | default: true
+
+  # Detect color option for card swatches
+  assign card_color_option = nil
+  assign card_color_option_index = -1
+  if show_card_swatches and card_product.has_only_default_variant == false
+    for option in card_product.options_with_values
+      assign opt_lower = option.name | downcase
+      if opt_lower == 'color' or opt_lower == 'colour' or opt_lower == 'farbe' or opt_lower == 'colore' or opt_lower == 'couleur'
+        assign card_color_option = option
+        assign card_color_option_index = forloop.index0
+        break
+      endif
+    endfor
+  endif
+
+  # Variant info
+  assign current_variant = card_product.selected_or_first_available_variant
+  assign is_on_sale = false
+  if card_product.compare_at_price > card_product.price
+    assign is_on_sale = true
+  endif
+  assign is_sold_out = false
+  if current_variant.available == false
+    assign is_sold_out = true
+  endif
+-%}
+
+<article class="product-card{% if is_sold_out %} product-card--sold-out{% endif %}">
+  {%- comment -%} Image Container {%- endcomment -%}
+  <div class="product-card__media">
+    <a href="{{ card_product.url }}" class="product-card__link" aria-label="{{ card_product.title | escape }}">
       {%- if card_product.featured_image -%}
-        <img
-          src="{{ card_product.featured_image | image_url: width: 533 }}"
-          sizes="(min-width: 1200px) 300px, (min-width: 768px) 50vw, 100vw"
-          loading="lazy"
-          width="{{ card_product.featured_image.width }}"
-          height="{{ card_product.featured_image.height }}"
-          alt="{{ card_product.featured_image.alt | escape }}"
-          class="card-image"
-        >
-        {%- if card_product.images[1] != blank -%}
-          <img
-            src="{{ card_product.images[1] | image_url: width: 533 }}"
-            loading="lazy"
-            class="card-image-hover"
-            alt="{{ card_product.images[1].alt | escape }}"
-          >
+        {%- render 'image-lazy',
+          image: card_product.featured_image,
+          index: index,
+          eager_count: eager,
+          sizes: '(min-width: 1200px) 300px, (min-width: 768px) 50vw, 100vw',
+          widths: '300,400,533,700',
+          aspect_ratio: ratio,
+          class: 'product-card__image product-card__image--primary',
+          wrapper: false,
+          context: 'product',
+          product: card_product,
+          position: 1
+        -%}
+
+        {%- if card_product.images[1] != blank and show_hover -%}
+          {%- render 'image-lazy',
+            image: card_product.images[1],
+            lazy: true,
+            sizes: '(min-width: 1200px) 300px, (min-width: 768px) 50vw, 100vw',
+            widths: '300,400,533',
+            class: 'product-card__image product-card__image--hover',
+            wrapper: false,
+            context: 'product',
+            product: card_product,
+            position: 2
+          -%}
         {%- endif -%}
       {%- else -%}
-        {{ 'product-1' | placeholder_svg_tag: 'card-image placeholder' }}
+        <div class="product-card__placeholder">
+          {{ 'product-1' | placeholder_svg_tag: 'product-card__placeholder-svg' }}
+        </div>
       {%- endif -%}
     </a>
 
-    {%- if card_product.compare_at_price > card_product.price -%}
-      <span class="badge sale-badge">Sale</span>
+    {%- comment -%} Badges {%- endcomment -%}
+    {%- render 'product-badges', badge_product: card_product, context: 'card' -%}
+
+    {%- comment -%} Quick Buy Button (Overlay Position) {%- endcomment -%}
+    {%- if quick_buy -%}
+      {% render 'quick-buy-button',
+        product: card_product,
+        button_style: qb_style,
+        button_text: qb_text,
+        show_quick_view: quick_view,
+        position: 'overlay'
+      %}
     {%- endif -%}
-    
-    <form method="post" action="/cart/add" class="quick-add-form">
-      <input type="hidden" name="id" value="{{ card_product.variants.first.id }}">
-      <button type="submit" class="button-primary quick-add-btn">
-        +
-      </button>
-    </form>
   </div>
 
-  <div class="card-info">
-    <h3 class="card-title">
+  {%- comment -%} Product Info {%- endcomment -%}
+  <div class="product-card__info">
+    {%- comment -%} Vendor {%- endcomment -%}
+    {%- if show_vendor_name and card_product.vendor != blank -%}
+      <p class="product-card__vendor">{{ card_product.vendor }}</p>
+    {%- endif -%}
+
+    {%- comment -%} Title {%- endcomment -%}
+    <h3 class="product-card__title">
       <a href="{{ card_product.url }}">{{ card_product.title }}</a>
     </h3>
-    
-    <div class="card-price">
-      {%- if card_product.compare_at_price > card_product.price -%}
-        <span class="price-regular strike">{{ card_product.compare_at_price | money }}</span>
-        <span class="price-sale">{{ card_product.price | money }}</span>
+
+    {%- comment -%} Rating {%- endcomment -%}
+    {%- if show_rating_stars and card_product.metafields.reviews.rating.value != blank -%}
+      <div class="product-card__rating">
+        {%- assign rating_value = card_product.metafields.reviews.rating.value | round: 1 -%}
+        <div class="product-card__stars" aria-label="{{ rating_value }} {{ 'products.product.of' | t | default: 'von' }} 5 {{ 'products.product.stars' | t | default: 'Sternen' }}">
+          {%- for i in (1..5) -%}
+            {%- assign prev = i | minus: 1 -%}
+            <span class="product-card__star{% if rating_value >= i %} product-card__star--filled{% elsif rating_value > prev %} product-card__star--half{% endif %}">★</span>
+          {%- endfor -%}
+        </div>
+        {%- if card_product.metafields.reviews.rating_count.value != blank -%}
+          <span class="product-card__rating-count">({{ card_product.metafields.reviews.rating_count.value }})</span>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+
+    {%- comment -%} Price {%- endcomment -%}
+    <div class="product-card__price">
+      {%- if is_on_sale -%}
+        <s class="product-card__price-compare">{{ card_product.compare_at_price | money }}</s>
+        <span class="product-card__price-sale">{{ card_product.price | money }}</span>
       {%- else -%}
-        <span class="price-regular">{{ card_product.price | money }}</span>
+        <span class="product-card__price-regular">{{ card_product.price | money }}</span>
       {%- endif -%}
     </div>
+
+    {%- comment -%} Color Swatches {%- endcomment -%}
+    {%- if card_color_option != nil and card_color_option.values.size > 1 -%}
+      {%- liquid
+        assign swatch_shape = settings.swatch_style | default: 'circle'
+        assign show_border = settings.swatch_show_border | default: true
+      -%}
+      <div class="product-card__swatches" data-card-swatches>
+        {%- for value in card_color_option.values -%}
+          {%- liquid
+            assign color_handle = value | handle
+            assign card_swatch_bg = ''
+            assign card_swatch_image = ''
+            assign card_swatch_variant_img = ''
+            assign card_swatch_variant_url = ''
+
+            comment
+              Find variant featured image for this color
+            endcomment
+            for variant in card_product.variants
+              if variant.options[card_color_option_index] == value
+                if variant.featured_image
+                  assign card_swatch_variant_img = variant.featured_image | image_url: width: 700
+                endif
+                assign card_swatch_variant_url = variant.url
+                break
+              endif
+            endfor
+
+            comment
+              Color mapping (always resolve as base layer)
+            endcomment
+            capture mapped_color
+              render 'color-mapping', color_name: value
+            endcapture
+            assign card_swatch_bg = mapped_color | strip
+
+            comment
+              Image swatch from files (optional layer on top of color)
+              file_img_url generates URLs even for missing files, so we
+              layer the image on top — if the image 404s, the color shows through.
+            endcomment
+            assign swatch_file = 'swatch-' | append: color_handle | append: '.png'
+            assign swatch_file_url = swatch_file | file_img_url: '64x64'
+
+            comment
+              Light color detection
+            endcomment
+            assign is_light = false
+            assign lower_val = value | downcase
+            if lower_val == 'weiß' or lower_val == 'weiss' or lower_val == 'white' or lower_val == 'beige' or lower_val == 'creme' or lower_val == 'cream' or lower_val == 'ivory' or lower_val == 'elfenbein' or lower_val == 'gelb' or lower_val == 'yellow' or lower_val == 'sand' or lower_val == 'hellgrau' or lower_val == 'light gray' or lower_val == 'light grey' or lower_val == 'mint' or lower_val == 'mintgrün'
+              assign is_light = true
+            endif
+          -%}
+
+          <a
+            href="{{ card_swatch_variant_url | default: card_product.url }}"
+            class="product-card__swatch product-card__swatch--{{ swatch_shape }}{% if is_light and show_border %} product-card__swatch--light{% endif %}{% if forloop.index0 == 0 %} product-card__swatch--active{% endif %}"
+            title="{{ value }}"
+            data-card-swatch
+            {%- if card_swatch_variant_img != '' %} data-card-swatch-image="{{ card_swatch_variant_img }}"{% endif -%}
+            aria-label="{{ value }}"
+          >
+            <span
+              class="product-card__swatch-visual"
+              style="background-color: {{ card_swatch_bg }};{% if swatch_file_url != blank %} background-image: url('{{ swatch_file_url }}'); background-size: cover;{% endif %}"
+            ></span>
+          </a>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
   </div>
-</div>
+</article>
+
+{% stylesheet %}
+  /* Product Card */
+  .product-card {
+    position: relative;
+  }
+
+  .product-card--sold-out .product-card__media {
+    opacity: 0.7;
+  }
+
+  /* Media Container */
+  .product-card__media {
+    position: relative;
+    overflow: hidden;
+    background-color: var(--color-background-secondary, #f5f5f5);
+    aspect-ratio: 3 / 4;
+    border-radius: var(--border-radius-card, 8px);
+  }
+
+  .product-card__link {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Images */
+  .product-card__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease, opacity 0.3s ease;
+  }
+
+  .product-card__image--hover {
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0;
+  }
+
+  .product-card:hover .product-card__image--primary {
+    transform: scale(1.03);
+  }
+
+  .product-card:hover .product-card__image--hover {
+    opacity: 1;
+    transform: scale(1.03);
+  }
+
+  /* Placeholder */
+  .product-card__placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+  }
+
+  .product-card__placeholder-svg {
+    width: 50%;
+    height: auto;
+    opacity: 0.3;
+  }
+
+  /* Info */
+  .product-card__info {
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .product-card__vendor {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    opacity: 0.6;
+    margin: 0;
+  }
+
+  .product-card__title {
+    font-size: 1rem;
+    font-weight: 500;
+    margin: 0;
+    line-height: 1.3;
+  }
+
+  .product-card__title a {
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .product-card__title a:hover {
+    text-decoration: underline;
+  }
+
+  /* Rating */
+  .product-card__rating {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 2px;
+  }
+
+  .product-card__stars {
+    display: flex;
+    gap: 1px;
+    color: #d1d5db;
+    font-size: 0.875rem;
+  }
+
+  .product-card__star--filled {
+    color: #f59e0b;
+  }
+
+  .product-card__star--half {
+    background: linear-gradient(90deg, #f59e0b 50%, #d1d5db 50%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .product-card__rating-count {
+    font-size: 0.75rem;
+    color: #6b7280;
+  }
+
+  /* Price */
+  .product-card__price {
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+  }
+
+  .product-card__price-regular {
+    font-weight: 600;
+  }
+
+  .product-card__price-compare {
+    color: #6b7280;
+    font-size: 0.875rem;
+  }
+
+  .product-card__price-sale {
+    color: var(--color-sale, #dc2626);
+    font-weight: 600;
+  }
+
+  /* Aspect Ratio Variants */
+  .product-card__media--square {
+    aspect-ratio: 1 / 1;
+  }
+
+  .product-card__media--portrait {
+    aspect-ratio: 3 / 4;
+  }
+
+  .product-card__media--landscape {
+    aspect-ratio: 4 / 3;
+  }
+
+  .product-card__media--16-9 {
+    aspect-ratio: 16 / 9;
+  }
+
+  /* Card Swatches */
+  .product-card__swatches {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 6px;
+  }
+
+  .product-card__swatch {
+    display: inline-block;
+    text-decoration: none;
+    transition: transform 0.2s;
+  }
+
+  .product-card__swatch:hover {
+    transform: scale(1.15);
+  }
+
+  .product-card__swatch-visual {
+    display: block;
+    width: 18px;
+    height: 18px;
+    border: 2px solid transparent;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .product-card__swatch--circle .product-card__swatch-visual { border-radius: 50%; }
+  .product-card__swatch--square .product-card__swatch-visual { border-radius: 2px; }
+  .product-card__swatch--rounded .product-card__swatch-visual { border-radius: 4px; }
+
+  .product-card__swatch--light .product-card__swatch-visual { border-color: #ddd; }
+
+  .product-card__swatch--active .product-card__swatch-visual {
+    border-color: var(--color-primary, #000);
+    box-shadow: 0 0 0 1px var(--color-background, #fff), 0 0 0 2px var(--color-primary, #000);
+  }
+
+  /* Swatch hover image overlay */
+  .product-card__swatch-preview {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  .product-card__swatch-preview.is-visible {
+    opacity: 1;
+  }
+{% endstylesheet %}
+
+{% javascript %}
+  // Card swatch hover image switch (runs once via Shopify's dedup)
+  document.addEventListener('mouseenter', function(e) {
+    var swatch = e.target.closest('[data-card-swatch]');
+    if (!swatch) return;
+
+    var imageUrl = swatch.dataset.cardSwatchImage;
+    if (!imageUrl) return;
+
+    var card = swatch.closest('.product-card');
+    if (!card) return;
+
+    var media = card.querySelector('.product-card__media');
+
+    // Create or reuse preview image
+    var preview = media.querySelector('.product-card__swatch-preview');
+    if (!preview) {
+      preview = document.createElement('img');
+      preview.className = 'product-card__swatch-preview';
+      preview.loading = 'lazy';
+      media.appendChild(preview);
+    }
+
+    preview.src = imageUrl;
+    preview.alt = swatch.getAttribute('title') || '';
+    preview.classList.add('is-visible');
+
+    // Update active state
+    card.querySelectorAll('[data-card-swatch]').forEach(function(s) {
+      s.classList.remove('product-card__swatch--active');
+    });
+    swatch.classList.add('product-card__swatch--active');
+  }, true);
+
+  document.addEventListener('mouseleave', function(e) {
+    var swatch = e.target.closest('[data-card-swatch]');
+    if (!swatch) return;
+
+    var card = swatch.closest('.product-card');
+    if (!card) return;
+
+    var preview = card.querySelector('.product-card__swatch-preview');
+    if (preview) preview.classList.remove('is-visible');
+
+    // Restore first swatch as active
+    var first = card.querySelector('[data-card-swatch]');
+    card.querySelectorAll('[data-card-swatch]').forEach(function(s) {
+      s.classList.remove('product-card__swatch--active');
+    });
+    if (first) first.classList.add('product-card__swatch--active');
+  }, true);
+{% endjavascript %}
