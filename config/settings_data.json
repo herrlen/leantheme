@@ -9,7 +9,9 @@
  */
 {
   "current": {
-    "dark_mode_enabled": true,
+    "currency_show_header": false,
+    "currency_show_mobile": false,
+    "dark_mode_enabled": false,
     "sections": {
       "age-verifier": {
         "type": "age-verifier",
